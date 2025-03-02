@@ -122,7 +122,7 @@ import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.RunnableInt;
-import me.vkryl.td.Td;
+import tgx.td.Td;
 
 public class ThemeListController extends RecyclerViewController<ThemeListController.Args> implements Menu, View.OnClickListener, ClipboardManager.OnPrimaryClipChangedListener, View.OnLongClickListener {
   public static class Args {
@@ -704,7 +704,7 @@ public class ThemeListController extends RecyclerViewController<ThemeListControl
             lp.rightMargin = Screen.dp(12f);
             fp.bottomMargin = Screen.dp(4f);
 
-            MaterialEditTextGroup editText = new MaterialEditTextGroup(context) {
+            MaterialEditTextGroup editText = new MaterialEditTextGroup(context, tdlib) {
               @Override
               public boolean onInterceptTouchEvent (MotionEvent ev) {
                 return true;

@@ -31,13 +31,14 @@ public class Config {
   public static final boolean FOREGROUND_SYNC_ALWAYS_ENABLED = true; // Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
   public static final @Dimension(unit = Dimension.DP) int COMMENTS_BUBBLE_BUTTON_MIN_WIDTH = 200;
   public static final boolean SHOW_CHANNEL_POST_REPLY_INFO_IN_COMMENTS = true;
-  public static final boolean CHAT_FOLDERS_ENABLED = true;
   public static final boolean CHAT_FOLDERS_SMART_CHAT_DELETION_ENABLED = true;
   public static final boolean CHAT_FOLDERS_HIDE_BOTTOM_BAR_ON_SCROLL = true;
   public static final boolean CHAT_FOLDERS_APPEARANCE_IS_GLOBAL = true;
-  public static final boolean CHAT_FOLDERS_REDESIGN = true;
   public static final boolean RESTRICT_HIDING_MAIN_LIST = true;
   public static final boolean SEARCH_MESSAGES_ONLY_IN_SELECTED_FOLDER = BuildConfig.EXPERIMENTAL;
+  public static final boolean CHAT_FOLDERS_UNSET_DEFAULT_ICONS = false; // Until there's a fix on server
+
+  public static final boolean TEST_NEW_FEATURES_PROMPTS = false;
 
   public static final boolean NEED_SILENT_BROADCAST = false;
 
@@ -49,6 +50,8 @@ public class Config {
 
   public static final boolean MODERN_IMAGE_DECODER_ENABLED = true;
   public static final boolean FORCE_SOFTWARE_IMAGE_DECODER = true;
+
+  public static final boolean WAIT_ANIMATIONS_BEFORE_START_VIDEO = true;
 
   // Allow stretch bounce in places where the glow looks ugly
   public static final boolean HAS_NICE_OVER_SCROLL_EFFECT = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
@@ -248,8 +251,6 @@ public class Config {
 
   public static final boolean NEED_ONLINE = true; // !BuildConfig.DEBUG;
 
-  public static final boolean USE_ICON_TABS = false;
-
   /* TODO: Missing Android API
    * TextUtils.CHAR_SEQUENCE_CREATOR doesn't support ImageSpan (or whatever alternative),
    * therefore it's impossible to display even static custom emoji in notifications
@@ -304,6 +305,8 @@ public class Config {
   public static final boolean USE_HARDWARE_PHOTO_VIEWER_CONFIG = false;
 
   public static final boolean REQUIRE_FIREBASE_SERVICES_FOR_SAFETYNET = false;
+
+  public static final boolean USE_INPUT_VIEW_CLIPPING_FIX = false;
 
   public static final int VOIP_CONNECTION_MIN_LAYER = 65;
   public static final boolean FORCE_DIRECT_TGVOIP = false;

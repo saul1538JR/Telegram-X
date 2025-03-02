@@ -105,6 +105,7 @@ import org.thunderdog.challegram.widget.BaseView;
 import org.thunderdog.challegram.widget.CustomImageView;
 import org.thunderdog.challegram.widget.EmojiLayout;
 import org.thunderdog.challegram.widget.ForceTouchView;
+import org.thunderdog.challegram.widget.KeyboardFrameLayout;
 import org.thunderdog.challegram.widget.PopupLayout;
 import org.thunderdog.challegram.widget.SeparatorView;
 import org.thunderdog.challegram.widget.TextFormattingLayout;
@@ -114,6 +115,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -135,9 +137,10 @@ import me.vkryl.core.collection.LongList;
 import me.vkryl.core.collection.LongSet;
 import me.vkryl.core.lambda.Filter;
 import me.vkryl.core.lambda.RunnableBool;
-import me.vkryl.td.ChatId;
-import me.vkryl.td.ChatPosition;
-import me.vkryl.td.Td;
+import me.vkryl.core.lambda.RunnableData;
+import tgx.td.ChatId;
+import tgx.td.ChatPosition;
+import tgx.td.Td;
 
 public class ShareController extends TelegramViewController<ShareController.Args> implements
   FactorAnimator.Target, Runnable, PopupLayout.PopupHeightProvider,
@@ -365,6 +368,8 @@ public class ShareController extends TelegramViewController<ShareController.Args
   protected int getBackButton () {
     return BackHeaderButton.TYPE_CLOSE;
   }
+
+  private TdApi.MessageProperties[] messageProperties;
 
   @Override
   public void setArguments (Args args) {
@@ -698,6 +703,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
     context.startActivity(Intent.createChooser(shareIntent, title));
   }
 
+  @SuppressWarnings("WrongConstant")
   private void exportContent () {
     if (isSent)
       return;
@@ -781,6 +787,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
               textRes = R.string.ShareTextPlain;
               break;
             default:
+              Td.assertMessageContent_640c68ad();
               title1Res = R.string.ShareTitleMedia;
               title2Res = R.string.ShareTitleMediaX;
               textRes = R.string.ShareTextMedia;
@@ -1408,11 +1415,30 @@ public class ShareController extends TelegramViewController<ShareController.Args
 
     checkCommentPosition();
 
+    // Load message properties
+
+    reloadMessageProperties(null);
+
     // Load chats
 
     initializeChatList(displayingChatList);
 
     return wrapView;
+  }
+
+  private void reloadMessageProperties (@Nullable RunnableData<TdApi.MessageProperties[]> after) {
+    if (mode == MODE_MESSAGES) {
+      TdApi.Message[] messages = getArgumentsStrict().messages;
+      List<TdApi.Message> list = Arrays.asList(messages);
+      tdlib.getMessageProperties(list, properties -> {
+        runOnUiThreadOptional(() -> {
+          messageProperties = properties;
+          if (after != null) {
+            after.runWithData(properties);
+          }
+        });
+      });
+    }
   }
 
   private void initializeChatList (TdApi.ChatList chatList) {
@@ -1623,7 +1649,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
 
   @Override
   public int[] displayBaseViewWithAnchor (EmojiToneHelper context, View anchorView, View viewToDisplay, int viewWidth, int viewHeight, int horizontalMargin, int horizontalOffset, int verticalOffset) {
-    return EmojiToneHelper.defaultDisplay(context, anchorView, viewToDisplay, viewWidth, viewHeight, horizontalMargin, horizontalOffset, verticalOffset, contentView, bottomWrap, emojiLayout);
+    return EmojiToneHelper.defaultDisplay(context, anchorView, viewToDisplay, viewWidth, viewHeight, horizontalMargin, horizontalOffset, verticalOffset, contentView, bottomWrap, keyboardFrameLayout);
   }
 
   @Override
@@ -1780,7 +1806,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
     switch (mode) {
       case MODE_TELEGRAM_FILES: {
         for (MediaItem item : args.telegramFiles) {
-          TdApi.InputMessageContent content = item.createShareContent(null);
+          TdApi.InputMessageContent content = item.createShareContent();
           if (content.getConstructor() == TdApi.InputMessageVoiceNote.CONSTRUCTOR ||
             content.getConstructor() == TdApi.InputMessageVideoNote.CONSTRUCTOR) {
             return true;
@@ -1831,18 +1857,21 @@ public class ShareController extends TelegramViewController<ShareController.Args
       }
       case MODE_TELEGRAM_FILES: {
         for (MediaItem item : args.telegramFiles) {
-          CharSequence restrictionText = tdlib.getRestrictionText(chat, item.createShareContent(null));
+          CharSequence restrictionText = tdlib.getRestrictionText(chat, item.createShareContent());
           if (restrictionText != null)
             return restrictionText;
         }
         break;
       }
       case MODE_MESSAGES: {
+        int index = 0;
         for (TdApi.Message message : args.messages) {
+          TdApi.MessageProperties properties = messageProperties[index];
+          index++;
           if (ChatId.isSecret(chatId)) {
-            if (!TD.canSendToSecretChat(message.content))
+            if (!properties.canBeCopiedToSecretChat)
               return Lang.getString(R.string.SecretChatForwardError);
-            TdApi.ForwardMessages function = new TdApi.ForwardMessages(chatId, 0, message.chatId, new long[] {message.id}, new TdApi.MessageSendOptions(false, false, false, false, null, 0, true), needHideAuthor, needRemoveCaptions);
+            TdApi.ForwardMessages function = new TdApi.ForwardMessages(chatId, 0, message.chatId, new long[] {message.id}, new TdApi.MessageSendOptions(false, false, false, false, false, null, 0, 0, true), needHideAuthor, needRemoveCaptions);
             TdApi.Object check = tdlib.clientExecute(function, 1000L);
             if (check instanceof TdApi.Error) {
               return TD.toErrorString(check);
@@ -1941,7 +1970,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
           return false;
         }
       }
-      if (showErrorMessage(view, chatId, false)) {
+      if ((mode == MODE_MESSAGES && messageProperties == null) || showErrorMessage(view, chatId, false)) {
         result = false;
       }
     }
@@ -2398,7 +2427,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
     chatsByChatList.put(TD.makeChatListKey(chatList), chats);
   }
 
-  private void displayChatList (String title, TdApi.ChatList chatList) {
+  private void displayChatList (CharSequence title, TdApi.ChatList chatList) {
     if (isDisplayingChatList(chatList))
       return;
     headerCell.setTitle(StringUtils.isEmptyOrBlank(title) ? getName() : title);
@@ -2623,7 +2652,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
   }
 
   private void checkCommentPosition () {
-    float y = (float) calculateMovementDistance() * (1f - expandFactor);
+    float y = (float) calculateMovementDistance() * (1f - expandFactor) - getKeyboardOffset();
     bottomWrap.setTranslationY(y);
     if (OPEN_KEYBOARD_WITH_AUTOSCROLL) {
       stubInputView.setTranslationY(y);
@@ -2735,11 +2764,11 @@ public class ShareController extends TelegramViewController<ShareController.Args
       return super.onKeyboardStateChanged(visible);
     }
     if (visible && !getKeyboardState()) {
-      closeEmojiKeyboard();
+      closeEmojiKeyboard(true);
     }
     boolean result = super.onKeyboardStateChanged(visible);
-    if (emojiLayout != null) {
-      emojiLayout.onKeyboardStateChanged(visible);
+    if (keyboardFrameLayout != null) {
+      keyboardFrameLayout.onKeyboardStateChanged(visible);
     }
     checkKeyboardVisible();
     return result;
@@ -2869,6 +2898,14 @@ public class ShareController extends TelegramViewController<ShareController.Args
     setIsExpanded(isReady);
   }
 
+  private float getKeyboardOffset () {
+    return keyboardFrameLayout != null ? keyboardFrameLayout.getLayoutTranslationOffset() : 0f;
+  }
+
+  private void onKeyboardLayoutTranslation (float translationY) {
+    checkCommentPosition();
+  }
+
   // Emoji keyboard
 
   private boolean isKeyboardReallyVisible;
@@ -2889,6 +2926,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
     }
   }
 
+  private KeyboardFrameLayout keyboardFrameLayout;
   private EmojiLayout emojiLayout;
   private TextFormattingLayout textFormattingLayout;
 
@@ -2908,27 +2946,39 @@ public class ShareController extends TelegramViewController<ShareController.Args
 
   private void openEmojiKeyboard () {
     if (!emojiShown) {
-      if (emojiLayout == null) {
-        emojiLayout = new EmojiLayout(context());
-        emojiLayout.initWithMediasEnabled(this, false, this, this, false);
-        bottomWrap.addView(emojiLayout);
-        if (inputView != null) {
-          textFormattingLayout = new TextFormattingLayout(context(), this, inputView);
-          textFormattingLayout.setDelegate(this::closeTextFormattingKeyboard);
-          textFormattingLayout.setVisibility(View.GONE);
-          emojiLayout.addView(textFormattingLayout, FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-        wrapView.getViewTreeObserver().addOnPreDrawListener(emojiLayout);
-      } else {
-        emojiLayout.setVisibility(View.VISIBLE);
-      }
+      if (keyboardFrameLayout == null) {
+        keyboardFrameLayout = new KeyboardFrameLayout(context());
+        keyboardFrameLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
+        keyboardFrameLayout.setParentView(bottomWrap, contentView, wrapView);
+        keyboardFrameLayout.setUpdateTranslationListener(this::onKeyboardLayoutTranslation);
 
+        textFormattingLayout = keyboardFrameLayout.contentView.textFormattingLayout;
+        textFormattingLayout.init(this, inputView, new TextFormattingLayout.Delegate() {
+          @Override
+          public void onWantsCloseTextFormattingKeyboard () {
+            closeTextFormattingKeyboard();
+          }
+
+          @Override
+          public void onWantsOpenTextFormattingKeyboard () {
+            openEmojiKeyboard();
+          }
+        });
+
+        emojiLayout = keyboardFrameLayout.contentView.emojiLayout;
+        emojiLayout.initWithMediasEnabled(this, false, this, this, false);
+        emojiLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        emojiLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        bottomWrap.addView(keyboardFrameLayout);
+      }
+      keyboardFrameLayout.setVisible(true);
       emojiState = getKeyboardState();
 
       setEmojiShown(true);
       if (emojiState) {
         emojiButton.setImageResource(R.drawable.baseline_keyboard_24);
-        emojiLayout.hideKeyboard(inputView);
+        keyboardFrameLayout.hideKeyboard(inputView);
       } else {
         emojiButton.setImageResource(R.drawable.baseline_direction_arrow_down_24);
       }
@@ -2939,8 +2989,8 @@ public class ShareController extends TelegramViewController<ShareController.Args
 
   private void forceCloseEmojiKeyboard () {
     if (emojiShown) {
-      if (emojiLayout != null) {
-        emojiLayout.setVisibility(View.GONE);
+      if (keyboardFrameLayout != null) {
+        keyboardFrameLayout.setVisible(false);
       }
       setEmojiShown(false);
       emojiButton.setImageResource(getTargetIcon());
@@ -2950,11 +3000,15 @@ public class ShareController extends TelegramViewController<ShareController.Args
   }
 
   private void closeEmojiKeyboard () {
+    closeEmojiKeyboard(false);
+  }
+
+  private void closeEmojiKeyboard (boolean byKeyboardOpen) {
     if (emojiShown) {
-      if (emojiLayout != null) {
-        emojiLayout.setVisibility(View.GONE);
-        if (emojiState) {
-          emojiLayout.showKeyboard(inputView);
+      if (keyboardFrameLayout != null) {
+        keyboardFrameLayout.setVisible(false);
+        if (emojiState && !byKeyboardOpen) {
+          keyboardFrameLayout.showKeyboard(inputView);
         }
       }
       setEmojiShown(false);
@@ -3002,7 +3056,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
     //noinspection SwitchIntDef
     switch (message.content.getConstructor()) {
       case TdApi.MessageText.CONSTRUCTOR: {
-        return TD.getMimeType(((TdApi.MessageText) message.content).webPage);
+        return TD.getMimeType(((TdApi.MessageText) message.content).linkPreview);
       }
       case TdApi.MessagePhoto.CONSTRUCTOR: {
         TdApi.MessagePhoto media = (TdApi.MessagePhoto) message.content;
@@ -3214,7 +3268,16 @@ public class ShareController extends TelegramViewController<ShareController.Args
   private boolean needHideAuthor, needRemoveCaptions, forceSendWithoutSound;
 
   private void sendMessages (boolean forceGoToChat, boolean isSingleTap, @Nullable TdApi.MessageSendOptions finalSendOptions) {
+    sendMessages(forceGoToChat, isSingleTap, finalSendOptions, true);
+  }
+
+  private void sendMessages (boolean forceGoToChat, boolean isSingleTap, @Nullable TdApi.MessageSendOptions finalSendOptions, boolean reloadProperties) {
     if (selectedChats.size() == 0 || isSent) {
+      return;
+    }
+
+    if (mode == MODE_MESSAGES && reloadProperties) {
+      reloadMessageProperties(ignored -> sendMessages(forceGoToChat, isSingleTap, finalSendOptions, false));
       return;
     }
 
@@ -3261,7 +3324,8 @@ public class ShareController extends TelegramViewController<ShareController.Args
           long singleSourceChatId = 0, singleSourceMediaGroupId = 0, contentfulMediaMessageId = 0;
           for (int index = 0; index < args.messages.length; index++) {
             TdApi.Message message = args.messages[index];
-            if (!message.canBeRepliedInAnotherChat) {
+            TdApi.MessageProperties properties = messageProperties[index];
+            if (!properties.canBeRepliedInAnotherChat) {
               messageReplyIncluded = false;
               break;
             }
@@ -3282,7 +3346,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
           }
 
           if (messageReplyIncluded) {
-            replyTo = new TdApi.InputMessageReplyToMessage(args.messages[0].chatId, contentfulMediaMessageId != 0 ? contentfulMediaMessageId : args.messages[0].id, null);
+            replyTo = new TdApi.InputMessageReplyToMessage(contentfulMediaMessageId != 0 ? contentfulMediaMessageId : args.messages[0].id, null);
           }
         }
         functions.addAll(TD.sendMessageText(chatId, 0, replyTo, sendOptions, new TdApi.InputMessageText(comment, null, false), tdlib.maxMessageTextLength()));
@@ -3298,7 +3362,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
           break;
         }
         case MODE_GAME: {
-          functions.add(new TdApi.SendMessage(chatId, 0, null, sendOptions, null, new TdApi.InputMessageForwarded(args.botMessage.chatId, args.botMessage.id, args.withUserScore, null)));
+          functions.add(new TdApi.SendMessage(chatId, 0, null, sendOptions, null, new TdApi.InputMessageForwarded(args.botMessage.chatId, args.botMessage.id, args.withUserScore, false, 0, null)));
           break;
         }
         case MODE_FILES  : {
@@ -3335,12 +3399,13 @@ public class ShareController extends TelegramViewController<ShareController.Args
         case MODE_TELEGRAM_FILES: {
           TdApi.FormattedText formattedCaption = StringUtils.isEmpty(args.telegramCaption) ? null : TD.newText(args.telegramCaption);
           TdApi.FormattedText messageCaption = formattedCaption != null && formattedCaption.text.codePointCount(0, formattedCaption.text.length()) <= tdlib.maxCaptionLength() ? formattedCaption : null;
+          boolean showCaptionAboveMedia = false; // TODO?
           if (formattedCaption != null && messageCaption == null) {
             functions.addAll(TD.sendMessageText(chatId, 0, null, sendOptions, new TdApi.InputMessageText(formattedCaption, null, false), tdlib.maxMessageTextLength()));
           }
           for (MediaItem item : args.telegramFiles) {
             boolean last = item == args.telegramFiles[args.telegramFiles.length - 1];
-            TdApi.InputMessageContent content = item.createShareContent(last ? messageCaption : null);
+            TdApi.InputMessageContent content = item.createShareContent(last ? messageCaption : null, last && showCaptionAboveMedia);
             if (content == null)
               return;
             functions.add(new TdApi.SendMessage(chatId, 0, null, sendOptions, null, content));
@@ -3535,10 +3600,10 @@ public class ShareController extends TelegramViewController<ShareController.Args
       PopupLayout popupLayout = PopupLayout.parentOf(v);
       popupLayout.hideWindow(true);
       TdApi.ChatFolderInfo chatFolderInfo = (TdApi.ChatFolderInfo) v.getTag();
-      displayChatList(chatFolderInfo.title, new TdApi.ChatListFolder(chatFolderInfo.id));
+      displayChatList(TD.toCharSequence(chatFolderInfo.name), new TdApi.ChatListFolder(chatFolderInfo.id));
     };
     for (TdApi.ChatFolderInfo chatFolderInfo : tdlib.chatFolders()) {
-      View itemView = menu.addItem(View.NO_ID, chatFolderInfo.title, TD.findFolderIcon(chatFolderInfo.icon, R.drawable.baseline_folder_24), /* icon */ null, onItemClickListener);
+      View itemView = menu.addItem(View.NO_ID, TD.toCharSequence(chatFolderInfo.name), TD.findFolderIcon(chatFolderInfo.icon, R.drawable.baseline_folder_24), /* icon */ null, onItemClickListener);
       itemView.setTag(chatFolderInfo);
     }
     menu.setAnchorMode(MenuMoreWrap.ANCHOR_MODE_HEADER);
@@ -3607,14 +3672,7 @@ public class ShareController extends TelegramViewController<ShareController.Args
   }
 
   private void setTextFormattingLayoutVisible (boolean visible) {
-    textFormattingVisible = visible;
-    if (emojiLayout != null && textFormattingLayout != null) {
-      textFormattingLayout.setVisibility(visible ? View.VISIBLE : View.GONE);
-      emojiLayout.optimizeForDisplayTextFormattingLayout(visible);
-      if (visible) {
-        textFormattingLayout.checkButtonsActive(false);
-      }
-    }
+    textFormattingVisible = keyboardFrameLayout != null && keyboardFrameLayout.contentView.setTextFormattingLayoutVisible(visible);
   }
 
   private void closeTextFormattingKeyboard () {

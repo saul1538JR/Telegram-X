@@ -79,7 +79,8 @@ import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import me.vkryl.td.Td;
+import tgx.td.Td;
+import tgx.td.TdExt;
 
 public class MessageOptionsPagerController extends BottomSheetViewController<OptionDelegate> implements
   FactorAnimator.Target, View.OnClickListener, Menu, DrawableProvider, PopupLayout.TouchDownInterceptor,
@@ -115,7 +116,7 @@ public class MessageOptionsPagerController extends BottomSheetViewController<Opt
         .drawable(R.drawable.baseline_favorite_16, 16f, 6f, Gravity.LEFT)
         .build(), this, Screen.dp(16));
       counters[ALL_REACTED_POSITION].counter.setCount(message.getMessageReactions().getTotalCount(), false);
-      state.headerAlwaysVisibleCountersWidth += counters[ALL_REACTED_POSITION].calculateWidth(null, Screen.dp(ViewPagerTopView.DEFAULT_ITEM_SPACING), /* labelFactor */ 1f);
+      state.headerAlwaysVisibleCountersWidth += counters[ALL_REACTED_POSITION].calculateWidth(null, Screen.dp(ViewPagerTopView.DEFAULT_ITEM_SPACING));
     } else {
       ALL_REACTED_POSITION = -1;
     }
@@ -127,7 +128,7 @@ public class MessageOptionsPagerController extends BottomSheetViewController<Opt
         .drawable(R.drawable.baseline_visibility_16, 16f, 6f, Gravity.LEFT)
         .build(), this, Screen.dp(16));
       counters[SEEN_POSITION].counter.setCount(1, false);
-      int itemWidth = counters[SEEN_POSITION].calculateWidth(null, Screen.dp(ViewPagerTopView.DEFAULT_ITEM_SPACING), /* labelFactor */ 1f); // - Screen.dp(16);
+      int itemWidth = counters[SEEN_POSITION].calculateWidth(null, Screen.dp(ViewPagerTopView.DEFAULT_ITEM_SPACING)); // - Screen.dp(16);
       state.headerAlwaysVisibleCountersWidth += itemWidth;
       counters[SEEN_POSITION].setStaticWidth(itemWidth - Screen.dp(16));
       counters[SEEN_POSITION].counter.setCount(Tdlib.CHAT_LOADING, false);
@@ -325,6 +326,7 @@ public class MessageOptionsPagerController extends BottomSheetViewController<Opt
 
   @Override
   public void onPageScrolled (int position, float positionOffset, int positionOffsetPixels) {
+    positionOffset = ViewPager.clampPositionOffset(positionOffset);
     if (this.checkedBasePosition != position) {
       checkedBasePosition = position;
       checkContentScrollY(position);
@@ -418,7 +420,7 @@ public class MessageOptionsPagerController extends BottomSheetViewController<Opt
       if (cachedHint != null && cachedHintAvailWidth == availWidth && cachedHint.equals(state.options.info)) {
         hintHeight = cachedHintHeight;
       } else {
-        hintHeight = CustomTextView.measureHeight(this, state.options.info, 15f, availWidth);
+        hintHeight = CustomTextView.measureHeight(this, state.options.info, 0, 15f, availWidth);
         cachedHint = state.options.info;
         cachedHintAvailWidth = availWidth;
         cachedHintHeight = hintHeight;

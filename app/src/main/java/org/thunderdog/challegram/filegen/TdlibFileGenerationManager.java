@@ -79,7 +79,6 @@ import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.unit.ByteUnit;
-import me.vkryl.td.Td;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -91,6 +90,7 @@ import okio.BufferedSource;
 import okio.Okio;
 import okio.Sink;
 import okio.Source;
+import tgx.td.Td;
 
 public final class TdlibFileGenerationManager {
   private OkHttpClient getClient () {
@@ -984,7 +984,7 @@ public final class TdlibFileGenerationManager {
     final String sourceUri = conversion.substring(0, i);
     String arg = conversion.substring(i + 1);
     int j = arg.indexOf('_');
-    final long expectedSize = StringUtils.parseInt(j != -1 ? arg.substring(0, j) : arg);
+    final long expectedSize = StringUtils.parseLong(j != -1 ? arg.substring(0, j) : arg);
 
     getContentExecutor().execute(() -> {
       boolean success = false;

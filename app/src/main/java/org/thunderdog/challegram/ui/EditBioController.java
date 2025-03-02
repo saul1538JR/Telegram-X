@@ -42,7 +42,7 @@ import java.util.List;
 import me.vkryl.android.text.CodePointCountFilter;
 import me.vkryl.android.text.RestrictFilter;
 import me.vkryl.android.widget.FrameLayoutFix;
-import me.vkryl.td.TdConstants;
+import tgx.td.TdConstants;
 
 public class EditBioController extends EditBaseController<EditBioController.Arguments> implements SettingsAdapter.TextChangeListener {
   public static class Arguments {
@@ -166,8 +166,8 @@ public class EditBioController extends EditBaseController<EditBioController.Argu
   }
 
   @Override
-  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v, String text) {
-    currentBio = text;
+  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v) {
+    currentBio = v.getText().toString();
   }
 
   @Override

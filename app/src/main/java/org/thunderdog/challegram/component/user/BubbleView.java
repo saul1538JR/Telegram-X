@@ -42,7 +42,7 @@ import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.Destroyable;
 import me.vkryl.core.lambda.RunnableData;
-import me.vkryl.td.Td;
+import tgx.td.Td;
 
 public class BubbleView implements AttachDelegate, Destroyable {
   private static final int FLAG_HIDING = 0x01;
@@ -87,6 +87,19 @@ public class BubbleView implements AttachDelegate, Destroyable {
         user.getShorterName(),
         receiver ->
           receiver.requestMessageSender(tdlib, sender, AvatarReceiver.Options.FORCE_IGNORE_FORUM)
+      );
+    }
+
+    public static Entry valueOf (Tdlib tdlib, long chatId) {
+      final String title = tdlib.chatTitle(chatId);
+      final TdApi.User user = tdlib.chatUser(chatId);
+      final String shortName = user != null ? TD.getShorterUserNameOrNull(user.firstName, user.lastName) : null;
+      RunnableData<AvatarReceiver> loader = receiver ->
+        receiver.requestChat(tdlib, chatId, AvatarReceiver.Options.FORCE_IGNORE_FORUM);
+      final TdApi.MessageSender senderId = tdlib.sender(chatId);
+      return new Entry(
+        tdlib, "sender_" + Td.getSenderId(senderId), senderId,
+        title, shortName, loader
       );
     }
 

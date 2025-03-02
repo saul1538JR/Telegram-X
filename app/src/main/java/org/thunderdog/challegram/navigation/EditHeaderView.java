@@ -49,7 +49,7 @@ import me.vkryl.android.ViewUtils;
 import me.vkryl.android.text.CodePointCountFilter;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.lambda.Destroyable;
-import me.vkryl.td.TdConstants;
+import tgx.td.TdConstants;
 
 public class EditHeaderView extends FrameLayoutFix implements RtlCheckListener, Destroyable, StretchyHeaderView, TextWatcher, HeaderView.OffsetChangeListener {
   private final ViewController<?> parent;
@@ -189,7 +189,7 @@ public class EditHeaderView extends FrameLayoutFix implements RtlCheckListener, 
     return input;
   }
 
-  public void setInput (String text) {
+  public void setInput (CharSequence text) {
     if (text != null) {
       flags |= FLAG_IGNORE_READY;
       input.setText(text);
@@ -225,21 +225,19 @@ public class EditHeaderView extends FrameLayoutFix implements RtlCheckListener, 
   @Override
   public void setScaleFactor (float scaleFactor, float fromFactor, float toScaleFactor, boolean byScroll) {
     scaleFactor = Size.convertExpandedFactor(scaleFactor);
-    if (this.scaleFactor != scaleFactor) {
-      this.scaleFactor = scaleFactor;
-      layoutReceiver();
-      scaleFactor = (1f - scaleFactor);
-      if (scaleFactor == 0f) {
-        setTranslationY(0f);
-        input.setTranslationX(0f);
-        input.setTranslationY(0f);
-      } else {
-        input.setTranslationX(scaleFactor * Screen.dp(20f));
-        input.setTranslationY(scaleFactor * -Screen.dp(10f));
-        setTranslationY(-Size.getHeaderPortraitSize() * scaleFactor);
-      }
-      invalidate();
+    this.scaleFactor = scaleFactor;
+    layoutReceiver();
+    scaleFactor = (1f - scaleFactor);
+    if (scaleFactor == 0f) {
+      setTranslationY(0f);
+      input.setTranslationX(0f);
+      input.setTranslationY(0f);
+    } else {
+      input.setTranslationX(scaleFactor * Screen.dp(20f));
+      input.setTranslationY(scaleFactor * -Screen.dp(10f));
+      setTranslationY(-Size.getHeaderPortraitSize() * scaleFactor);
     }
+    invalidate();
   }
 
   @Override

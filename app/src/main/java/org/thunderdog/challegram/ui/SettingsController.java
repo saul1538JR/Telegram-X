@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.BuildConfig;
+import org.thunderdog.challegram.N;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.component.attach.AvatarPickerManager;
@@ -96,7 +97,8 @@ import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.reference.ReferenceList;
-import me.vkryl.td.Td;
+import tgx.td.ChatId;
+import tgx.td.Td;
 
 public class SettingsController extends ViewController<Void> implements
   View.OnClickListener, ComplexHeaderView.Callback,
@@ -395,7 +397,7 @@ public class SettingsController extends ViewController<Void> implements
     this.headerCell.initWithController(this, true);
     this.headerCell.setInnerMargins(Screen.dp(56f), Screen.dp(49f));
     this.headerCell.setPhotoOpenCallback(this);
-    this.headerCell.setOnEmojiStatusClickListener((v, text, part, openParameters) -> {
+    this.headerCell.setOnEmojiStatusClickListener(v -> {
       EmojiStatusSelectorEmojiPage.Wrapper c = new EmojiStatusSelectorEmojiPage.Wrapper(context, tdlib, SettingsController.this, new EmojiStatusSelectorEmojiPage.AnimationsEmojiStatusSetDelegate() {
         @Override
         public void onAnimationStart () {
@@ -418,7 +420,6 @@ public class SettingsController extends ViewController<Void> implements
         }
       });
       c.show();
-      return false;
     });
     updateHeader();
 
@@ -535,7 +536,7 @@ public class SettingsController extends ViewController<Void> implements
               view.setText(obtainWrapper(Lang.getString(R.string.ReminderSetBirthdateText), action.getConstructor()));
               break;
             default:
-              Td.assertSuggestedAction_b50c1148();
+              Td.assertSuggestedAction_5f4bf3f7();
               throw Td.unsupported(action);
           }
         } else if (itemId == R.id.btn_birthdate) {
@@ -629,7 +630,7 @@ public class SettingsController extends ViewController<Void> implements
     items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_tweakSettings, R.drawable.baseline_extension_24, R.string.TweakSettings));
     items.add(new ListItem(ListItem.TYPE_SEPARATOR));
     if (Settings.instance().chatFoldersEnabled()) {
-      items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_chatFolders, R.drawable.baseline_folder_24, R.string.ChatFolders));
+      items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_chatFolders, R.drawable.baseline_folder_copy_24, R.string.ChatFolders));
       items.add(new ListItem(ListItem.TYPE_SEPARATOR));
     }
     items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_languageSettings, R.drawable.baseline_language_24, R.string.Language));
@@ -855,7 +856,7 @@ public class SettingsController extends ViewController<Void> implements
         item = new ListItem(ListItem.TYPE_INFO_MULTILINE, R.id.btn_suggestion, R.drawable.baseline_cake_variant_24, R.string.ReminderSetBirthdate);
         break;
       default:
-        Td.assertSuggestedAction_b50c1148();
+        Td.assertSuggestedAction_5f4bf3f7();
         throw Td.unsupported(action);
     }
     item
@@ -922,9 +923,11 @@ public class SettingsController extends ViewController<Void> implements
   private void updateHeader () {
     TdApi.User user = tdlib.myUser();
     if (headerCell != null) {
+      long chatId = user != null ? ChatId.fromUserId(user.id) : 0;
       headerCell.getAvatarReceiver().requestUser(tdlib, tdlib.myUserId(), AvatarReceiver.Options.FULL_SIZE);
       headerCell.setText(user != null ? TD.getUserName(user) : Lang.getString(R.string.LoadingUser), getSubtext());
       headerCell.setEmojiStatus(user);
+      headerCell.setAllowTitleClick(chatId);
       headerCell.invalidate();
     }
   }
@@ -1061,10 +1064,12 @@ public class SettingsController extends ViewController<Void> implements
     SourceCodeType.TELEGRAM_X,
     SourceCodeType.TDLIB,
     SourceCodeType.TGCALLS,
-    SourceCodeType.WEBRTC
+    SourceCodeType.WEBRTC,
+    SourceCodeType.FFMPEG,
+    SourceCodeType.WEBP
   })
   private @interface SourceCodeType {
-    int TELEGRAM_X = 0, TDLIB = 1, TGCALLS = 2, WEBRTC = 3;
+    int TELEGRAM_X = 0, TDLIB = 1, TGCALLS = 2, WEBRTC = 3, FFMPEG = 4, WEBP = 5;
   }
 
   private void viewSourceCode (@SourceCodeType int sourceCodeType) {
@@ -1080,14 +1085,18 @@ public class SettingsController extends ViewController<Void> implements
         url = AppBuildInfo.tdlibCommitUrl(tdlibCommitHash);
         break;
       }
-      case SourceCodeType.TGCALLS: {
+      case SourceCodeType.TGCALLS:
         url = BuildConfig.TGCALLS_COMMIT_URL;
         break;
-      }
-      case SourceCodeType.WEBRTC: {
+      case SourceCodeType.WEBRTC:
         url = BuildConfig.WEBRTC_COMMIT_URL;
         break;
-      }
+      case SourceCodeType.FFMPEG:
+        url = BuildConfig.FFMPEG_COMMIT_URL;
+        break;
+      case SourceCodeType.WEBP:
+        url = BuildConfig.WEBP_COMMIT_URL;
+        break;
       default:
         throw new IllegalArgumentException(Integer.toString(sourceCodeType));
     }
@@ -1144,15 +1153,22 @@ public class SettingsController extends ViewController<Void> implements
         tdlib.ui().openUrl(this, specificPullRequest.getCommitUrl(), new TdlibUi.UrlOpenParameters().disableInstantView());
       } else if (!appBuildInfo.getPullRequests().isEmpty() || appBuildInfo.getTdlibCommitFull() != null) {
         Options.Builder b = new Options.Builder();
+        SpannableStringBuilder hint = new SpannableStringBuilder(Lang.getMarkdownString(this, R.string.OpenSourceGuide));
         if (!appBuildInfo.getPullRequests().isEmpty()) {
-          b.info(Lang.plural(R.string.PullRequestsInfo, appBuildInfo.getPullRequests().size()));
+          hint.append("\n\n");
+          hint.append(Lang.pluralBold(R.string.PullRequestsInfo, appBuildInfo.getPullRequests().size()));
         }
-        b.item(new OptionItem(R.id.btn_sourceCode, Lang.getString(R.string.format_commit, Lang.getString(R.string.ViewSourceCode), appBuildInfo.getCommit()), OptionColor.NORMAL, R.drawable.baseline_github_24));
+        b.info(hint);
+        b.item(new OptionItem(R.id.btn_sourceCode, Lang.getCharSequence(R.string.format_commit, BuildConfig.PROJECT_NAME, appBuildInfo.getCommit()), OptionColor.NORMAL, R.drawable.baseline_logo_telegram_24));
         if (appBuildInfo.getTdlibCommitFull() != null) {
           b.item(new OptionItem(R.id.btn_tdlib, Lang.getCharSequence(R.string.format_commit, "TDLib " + Td.tdlibVersion(), Td.tdlibCommitHash()), OptionColor.NORMAL, R.drawable.baseline_tdlib_24));
         }
         b.item(new OptionItem(R.id.btn_tgcalls, Lang.getCharSequence(R.string.format_commit, "tgcalls", BuildConfig.TGCALLS_COMMIT), OptionColor.NORMAL, R.drawable.baseline_phone_in_talk_24));
         b.item(new OptionItem(R.id.btn_webrtc, Lang.getCharSequence(R.string.format_commit, "WebRTC", BuildConfig.WEBRTC_COMMIT), OptionColor.NORMAL, R.drawable.baseline_webrtc_24));
+        b.item(new OptionItem(R.id.btn_ffmpeg, Lang.getCharSequence(R.string.format_commit, "FFmpeg", BuildConfig.FFMPEG_COMMIT), OptionColor.NORMAL, R.drawable.baseline_ffmpeg_24));
+        if (BuildConfig.WEBP_ENABLED && N.hasBuiltInWebpSupport()) {
+          b.item(new OptionItem(R.id.btn_webp, Lang.getCharSequence(R.string.format_commit, "WebP", BuildConfig.WEBP_COMMIT), OptionColor.NORMAL, R.drawable.dotvhs_baseline_webp_24));
+        }
         int i = 0;
         for (PullRequest pullRequest : appBuildInfo.getPullRequests()) {
           b.item(new OptionItem(i++, Lang.getString(R.string.format_commit, Lang.getString(R.string.PullRequestCommit, pullRequest.getId()), pullRequest.getCommit()), OptionColor.NORMAL, R.drawable.templarian_baseline_source_merge_24));
@@ -1164,6 +1180,10 @@ public class SettingsController extends ViewController<Void> implements
             viewSourceCode(SourceCodeType.TDLIB);
           } else if (id == R.id.btn_webrtc) {
             viewSourceCode(SourceCodeType.WEBRTC);
+          } else if (id == R.id.btn_ffmpeg) {
+            viewSourceCode(SourceCodeType.FFMPEG);
+          } else if (id == R.id.btn_webp) {
+            viewSourceCode(SourceCodeType.WEBP);
           } else if (id == R.id.btn_tgcalls) {
             viewSourceCode(SourceCodeType.TGCALLS);
           } else if (id >= 0 && id < appBuildInfo.getPullRequests().size()) {
@@ -1205,7 +1225,7 @@ public class SettingsController extends ViewController<Void> implements
         showBuildOptions(true);
       } else {
         tdlib.getTesterLevel(testerLevel -> runOnUiThreadOptional(() ->
-          showBuildOptions(testerLevel >= Tdlib.TESTER_LEVEL_TESTER)
+          showBuildOptions(testerLevel >= Tdlib.TesterLevel.TESTER)
         ));
       }
     }
@@ -1262,7 +1282,7 @@ public class SettingsController extends ViewController<Void> implements
         return;
       }
       default: {
-        Td.assertSuggestedAction_b50c1148();
+        Td.assertSuggestedAction_5f4bf3f7();
         throw Td.unsupported(suggestedAction);
       }
     }

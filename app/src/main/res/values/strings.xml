@@ -444,8 +444,12 @@
   <string name="ChatContentLiveStreamInviteMulti_outgoing_one">Invited %1$s person to the live stream</string>
   <string name="ChatContentLiveStreamInviteMulti_outgoing_other">Invited %1$s people to the live stream</string>
 
-  <string name="ChatContentGiveaway_one"></string>
-  <string name="ChatContentGiveaway_other"></string>
+  <string name="ChatContentBoostedXTimes_outgoing_one">Boosted the group %1$s time</string>
+  <string name="ChatContentBoostedXTimes_outgoing_other">Boosted the group %1$s times</string>
+  <string name="ChatContentBoostedXTimes_one">Boosted the group %1$s time</string>
+  <string name="ChatContentBoostedXTimes_other">Boosted the group %1$s times</string>
+  <string name="ChatContentBoosted">Boosted the group</string>
+  <string name="ChatContentBoosted_outgoing">Boosted the group</string>
 
   <string name="Audio">Audio</string>
   <string name="Voice">Voice</string>
@@ -472,6 +476,7 @@
   <string name="CopiedLink">Link has been copied to the clipboard</string>
   <string name="CopiedLinkPrivate">Link has been copied to the clipboard. It works only for members of this chat.</string>
   <string name="CopiedText">Text has been copied to the clipboard</string>
+  <string name="CopiedDisplayName">Display name has been copied to the clipboard</string>
   <string name="CopiedColor">Color and its name have been copied to the clipboard</string>
   <string name="passcode_pattern_tooshort">Pattern should be at least 4 dots long</string>
   <string name="passcode_password_tooshort">Password should be at least 1 character long</string>
@@ -577,6 +582,7 @@
   <string name="CopyCoordinates">Copy coordinates</string>
   <string name="CopiedCoordinates">Coordinates have been copied to the clipboard</string>
   <string name="CopyLink">Copy link</string>
+  <string name="CopyDisplayName">Copy display name</string>
   <string name="Search">Search</string>
   <string name="NoChats">You have no chats</string>
   <string name="NoContacts">No contacts to display</string>
@@ -728,6 +734,7 @@
   <string name="XVideoSaved_one">%1$s video saved to Gallery</string>
   <string name="XVideoSaved_other">%1$s videos saved to Gallery</string>
   <string name="ChannelSignMessages">Sign Messages</string>
+  <string name="ChannelShowAuthors">Show Authors\' Profiles</string>
   <string name="ApproveNewMembers">Approve New Members</string>
   <string name="ApproveNewMembersInfo">Turn this on if you want new members to join only after they are approved by an admin.</string>
   <string name="RestrictSaving">Restrict Saving Content</string>
@@ -946,6 +953,7 @@
   <string name="NoVoiceMessages">No Voice messages</string>
   <string name="NoFiles">No Files</string>
   <string name="NoMusic">No Music</string>
+  <string name="NoFilter">No Filter</string>
   <string name="Other">Other</string>
   <string name="AutoplayGifs">Autoplay GIFs</string>
   <string name="QuickTranslate">Quick translate</string>
@@ -987,6 +995,7 @@
   <string name="AreYouSureSessions">Are you sure you want to terminate all other sessions?</string>
   <string name="Everybody">Everybody</string>
   <string name="MyContacts">My Contacts</string>
+  <string name="MyContactsAndPremium">My Contacts and **Premium** users</string>
   <string name="Nobody">Nobody</string>
   <string name="WhoCanAddYouToGroupsAndChannels">Who can add you to groups and channels?</string>
   <string name="WhoCanAddMeInfo">You can restrict who can add you to groups and channels with granular precision.</string>
@@ -1022,6 +1031,10 @@
   <string name="HavingTroubleAccessing">Unable to access %1$s?</string>
   <string name="RestoreEmailTroubleText">If you can\'t restore access to your email, your remaining options are either to remember your password or to reset your account.</string>
   <string name="EnterCode">Enter code</string>
+  <string name="PasteUrlPlaceholder">Paste url…</string>
+  <string name="MultipleUrlPlaceholder">Multiple links selected</string>
+  <string name="PasteUrlNotValidHint">Invalid link</string>
+  <string name="PasteUrlEmptyHint">Clipboard is empty</string>
   <string name="PasswordRecovery">Password Recovery</string>
   <string name="LoginPasswordText">You have enabled Two-Step Verification, so your account is protected with an additional password.</string>
   <string name="EnterPassword">Enter Password</string>
@@ -1103,14 +1116,23 @@
   <string name="YouGiftedPremium_one">You gifted %1$s month of Telegram Premium for %2$s</string>
   <string name="YouGiftedPremium_other">You gifted %1$s months Telegram Premium for %2$s</string>
 
+  <string name="YouGiftedPremiumTo_one">You gifted %3$s %1$s month of Telegram Premium for %2$s</string>
+  <string name="YouGiftedPremiumTo_other">You gifted %3$s %1$s months Telegram Premium for %2$s</string>
+
   <string name="GiftedPremium_one">%2$s gifted you %1$s month of Telegram Premium for %3$s</string>
   <string name="GiftedPremium_other">%2$s gifted you %1$s months Telegram Premium for %3$s</string>
+
+  <string name="AnonymousGiftedPremium_one">Someone gifted you %1$s month of Telegram Premium for %2$s</string>
+  <string name="AnonymousGiftedPremium_other">Someone gifted you %1$s months Telegram Premium for %2$s</string>
 
   <string name="YouGiftedPremiumCode_one">You sent Gift Code for %1$s month of Telegram Premium</string>
   <string name="YouGiftedPremiumCode_other">You sent Gift Code for %1$s months of Telegram Premium</string>
 
   <string name="GiftedPremiumCode_one">%2$s sent you a Gift Code for %1$s month of Telegram Premium</string>
   <string name="GiftedPremiumCode_other">%2$s sent you a Gift Code for %1$s months Telegram Premium</string>
+
+  <string name="AnonymousGiftedPremiumCode_one">Someone sent you a Gift Code for %1$s month of Telegram Premium</string>
+  <string name="AnonymousGiftedPremiumCode_other">Someone sent you a Gift Code for %1$s months Telegram Premium</string>
 
   <string name="BotDataSent">Data from the \"%1$s\" button was transferred to the bot</string>
 
@@ -1277,6 +1299,18 @@
   <string name="ActionPinnedFile">%1$s pinned a **file**</string>
   <string name="ActionPinnedMusic">%1$s pinned an **audio file**</string>
   <string name="ActionPinnedPhoto">%1$s pinned a **photo**</string>
+
+  <string name="ActionPinnedPaidContent">%1$s pinned a **paid content**</string>
+  <string name="ActionPinnedPaidPost">%1$s pinned a **paid post**</string>
+  <string name="ActionPinnedPaidPhoto">%1$s pinned a **paid photo**</string>
+  <string name="ActionPinnedPaidVideo">%1$s pinned a **paid video**</string>
+  <string name="ActionPinnedXPaidPhotos_one">%2$s pinned **%1$s paid photo**</string>
+  <string name="ActionPinnedXPaidPhotos_other">%2$s pinned **%1$s paid photos**</string>
+  <string name="ActionPinnedXPaidVideos_one">%2$s pinned **%1$s paid video**</string>
+  <string name="ActionPinnedXPaidVideos_other">%2$s pinned **%1$s paid videos**</string>
+  <string name="ActionPinnedXPaidMedia_one">%2$s pinned **%1$s paid media**</string>
+  <string name="ActionPinnedXPaidMedia_other">%2$s pinned **%1$s paid medias**</string>
+
   <string name="ActionPinnedVideo">%1$s pinned a **video**</string>
   <string name="ActionPinnedRound">%1$s pinned a **video message**</string>
   <string name="ActionPinnedVoice">%1$s pinned a **voice message**</string>
@@ -1307,6 +1341,10 @@
   <string name="NewNumber">New Number</string>
   <string name="RegionNotFound">Country code not found</string>
   <string name="ConfirmationCode">Confirmation Code</string>
+  <string name="SentSmsWord">We\'ve sent you an SMS with a secret word to your phone %1$s.</string>
+  <string name="SentSmsWordHint">We\'ve sent you an SMS with a secret word that starts with \"%2$s\" to your phone %1$s.</string>
+  <string name="SentSmsPhrase">We\'ve sent you an SMS with a secret phrase to your phone %1$s.</string>
+  <string name="SentSmsPhraseHint">We\'ve sent you an SMS with a secret phrase that starts with \"%2$s\" to your phone %1$s.</string>
   <string name="SentSmsCode">We\'ve sent an SMS with an activation code to your phone **%1$s**.</string>
   <string name="SendingSmsCode">We are sending an SMS with an activation code to your phone **%1$s**…</string>
   <string name="SentAppCode">We\'ve sent the code to the **Telegram** app on your other device.</string>
@@ -1334,6 +1372,9 @@
   <string name="SimilarChannels">Similar Channels</string>
   <string name="xSimilarChannels_one">%1$s similar channel</string>
   <string name="xSimilarChannels_other">%1$s similar channels</string>
+  <string name="SimilarBots">Similar Bots</string>
+  <string name="xSimilarBots_one">%1$s similar bot</string>
+  <string name="xSimilarBots_other">%1$s similar bots</string>
   <string name="xMoreWithPremium_one">%1$s more with **Telegram Premium**</string>
   <string name="xMoreWithPremium_other">%1$s more with **Telegram Premium**</string>
   <string name="format_xChatsAndMoreWithPremium">%1$s, %2$s</string>
@@ -1709,6 +1750,7 @@
   <string name="BioDescription">Any details such as age, occupation or city.\nExample: 23 y.o. designer from San Francisco.</string>
   <string name="AttachPhotoExpired">Expired photo</string>
   <string name="AttachVideoExpired">Expired video</string>
+  <string name="PaidMedia">Paid content</string>
   <string name="AttachVoiceNoteExpired">Expired voice message</string>
   <string name="AttachVideoNoteExpired">Expired video message</string>
   <string name="SendByEnter">Send with Enter</string>
@@ -1748,6 +1790,10 @@
   <string name="ReportChatSpam">Are you sure you want to report %1$s for spam?</string>
   <string name="Report">Report</string>
   <string name="ReportChat">Report %1$s</string>
+  <string name="QReportChat">Report %1$s?</string>
+  <string name="ReportChatAlertBtn">Report</string>
+  <string name="ReportChatReasonOptional">Description</string>
+  <string name="ReportChatReasonRequired">Description (required)</string>
   <string name="ReportChatPhoto">Report %1$s\'s photo?</string>
   <string name="Spam">Spam</string>
   <string name="Fake">Fake</string>
@@ -1755,6 +1801,7 @@
   <string name="ChildAbuse">Child Abuse</string>
   <string name="Pornography">Pornography</string>
   <string name="ReportChatSent">Report sent</string>
+  <string name="ReportChatMessagesRequired">Select messages to include in your report.</string>
   <string name="CopiedMessages">Messages have been copied to the clipboard</string>
   <string name="ForwardedFromX">Forwarded from %1$s</string>
   <string name="InReplyToX">In reply to %1$s</string>
@@ -1862,6 +1909,12 @@
   <string name="QuickReactionEnableDesc">Some groups and channels may not allow specific reactions.</string>
 
   <string name="ReactionsDisabledDesc">Allow members to react to group messages</string>
+  <string name="xReactionsLimit_one">%1$s reaction</string>
+  <string name="xReactionsLimit_other">%1$s reactions</string>
+  <string name="ReactionsLimitChannel">Maximum number of reactions</string>
+  <string name="ReactionsLimitChannelDesc">Limit the number of different reactions that can be added to a post, including already published ones.</string>
+  <string name="ReactionsLimitChat">Maximum number of reactions</string>
+  <string name="ReactionsLimitChatDesc">Limit the number of different reactions that can be added to a message, including already sent ones.</string>
   <string name="AvailableReactions">Available reactions</string>
   <string name="PremiumReactions">Premium reactions</string>
   <string name="PremiumReactionsLocked">Subscribe to **Telegram Premium** to be able to use reactions below.</string>
@@ -2036,6 +2089,8 @@
   <string name="EventLogPreviousGroupDescription">Previous description</string>
   <string name="EventLogToggledInvitesOn">%1$s enabled group invites</string>
   <string name="EventLogToggledInvitesOff">%1$s disabled group invites</string>
+  <string name="EventLogToggledShowSenderOn">%1$s enabled sender visibility</string>
+  <string name="EventLogToggledShowSenderOff">%1$s disabled sender visibility</string>
   <string name="EventLogToggledSignaturesOn">%1$s enabled signatures</string>
   <string name="EventLogToggledSignaturesOff">%1$s disabled signatures</string>
   <string name="EventLogToggledProtectionOn">%1$s enabled content protection</string>
@@ -2270,10 +2325,13 @@
   <string name="HoldToAudio">Hold to record audio. Tap to switch to video.</string>
   <string name="HoldToVideo">Hold to record video. Tap to switch to audio.</string>
   <string name="MessageContainsPremiumFeatures">Sending animated emoji requires **Telegram Premium**</string>
+  <string name="UserNewChatRetricted">%1$s accepts new chats only from contacts and **Telegram&#160;Premium** users.</string>
   <string name="SecretChatFeatureUnsupported">%1$s\'s Telegram client doesn\'t support this feature. They need to install an update first.</string>
   <string name="UseHqRoundVideos">Record HQ Round Videos</string>
   <string name="DiscardVideoMessageTitle">Discard Video Message</string>
   <string name="DiscardVideoMessageDescription">Are you sure you want to discard your video message?</string>
+  <string name="DiscardAudioMessageTitle">Discard Audio Message</string>
+  <string name="DiscardAudioMessageDescription">Are you sure you want to discard your audio message?</string>
   <string name="Discard">Discard</string>
   <string name="MediaFeatureUnavailable">Feature is not available for this type of media</string>
   <string name="XMadeGroupHistoryHidden">%1$s made group history hidden for new members</string>
@@ -2297,6 +2355,11 @@
   <string name="Beginning">Beginning</string>
   <string name="PaymentSuccessfullyPaid">You successfully transferred %1$s to %2$s for %3$s</string>
   <string name="PaymentSuccessfullyPaidNoItem">You successfully transferred %1$s to %2$s</string>
+  <string name="PaymentRefunded">%1$s refunded %2$s</string>
+  <string name="YouReceivedXStars_one">You received %1$s star for %2$s</string>
+  <string name="YouReceivedXStars_other">You received %1$s stars for %2$s</string>
+  <string name="ReceivedXStars_one">%3$s received %1$s star for %2$s</string>
+  <string name="ReceivedXStars_other">%3$s received %1$s stars for %2$s</string>
   <string name="OpenMessage">View Message</string>
   <string name="SavedMessages">Saved Messages</string>
   <string name="Saved">Saved</string>
@@ -2541,6 +2604,15 @@
   <string name="ReportMessages">Report %1$s\'s messages</string>
   <string name="ReportXMessages_one">Report %1$s message</string>
   <string name="ReportXMessages_other">Report %1$s messages</string>
+
+  <string name="QReportMessageUser">Are you sure you want to report message from %1$s?</string>
+  <string name="QReportMessagesUser">Are you sure you want to report messages from %1$s</string>
+  <string name="QReportMessage">Are you sure you want to report %1$s\'s message?</string>
+  <string name="QReportMessages">Are you sure you want to report %1$s\'s messages?</string>
+  <string name="QReportXMessages_one">Are you sure you want to report %1$s message?</string>
+  <string name="QReportXMessages_other">Are you sure you want to report %1$s messages?</string>
+  <string name="ConfirmReportBtn">Report</string>
+
   <string name="SuggestStickers">Sticker suggestions by emoji</string>
   <string name="SuggestStickersAll">Installed + recommended</string>
   <string name="SuggestStickersInstalled">Only installed</string>
@@ -2686,6 +2758,7 @@
   <string name="TextFormatItalic">Italic</string>
   <string name="TextFormatMonospace">Monospace</string>
   <string name="TextFormatSpoiler">Spoiler</string>
+  <string name="TextFormatQuote">Quote</string>
   <string name="TextFormatStrikethrough">Strikethrough</string>
   <string name="TextFormatUnderline">Underline</string>
   <string name="TextFormatLink">Create Link</string>
@@ -2743,6 +2816,7 @@
   <string name="TabAudio">Audio</string>
   <string name="TabSharedGroups">Groups</string>
   <string name="TabSimilarChannels">Similar</string>
+  <string name="TabSimilarBots">Similar</string>
   <string name="TabAdmins">Admins</string>
   <string name="TabBlacklist">Blocked</string>
   <string name="TabRestricted">Restricted</string>
@@ -2915,7 +2989,7 @@
   <string name="HelpEmailError">Please send an email to %1$s and tell us about your problem</string>
 
   <string name="email_SmsHelp">sms@telegram.org</string>
-  <string name="email_LoginHelp">login@telegram.org</string>
+  <string name="email_LoginHelp">recover@telegram.org</string>
 
   <string name="email_LoginTooLong_subject">Telegram X connection issue</string>
   <string name="email_LoginTooLong_text">My Internet service provider is: (please enter the name)\n\nI\'ve just installed the application and tried to start messaging, but Telegram X is unable to connect to the server. Please help.\n\nApp version: %1$s\nLanguage: %2$s\nAwait time: %3$s\nSystem Language: %4$s\nSystem Version: %5$s</string>
@@ -3315,6 +3389,7 @@
   <string name="error_CHANNELS_ADMIN_LOCATED_TOO_MUCH">Sorry, you have too many location-based groups already. Please delete one of your existing ones first.</string>
   <string name="error_PREMIUM_ACCOUNT_REQUIRED">This feature requires Telegram Premium subscription.</string>
   <string name="error_INVITE_REQUEST_SENT">Request to join this chat has been sent.</string>
+  <string name="error_INVITE_SLUG_EXPIRED">The link is expired or was revoked by creator.</string>
   <string name="errorPrivacyAddMember">Sorry, the user restricted who can add them to chats in their privacy settings.</string>
   <string name="UserPrivacyRestricted">Sorry, the user restricted this action in their privacy settings.</string>
   <string name="NobodyLikesSpam2">Sorry, you can interact only with mutual contacts at the moment.</string> <!--PEER_FLOOD-->
@@ -3367,6 +3442,8 @@
   <string name="NotificationsGuideFirebaseError">**Firebase Services** have failed to function properly due to error: %1$s\n\nNotifications may arrive with big delays or not arrive at all without them.\n\nPlease make sure:\n• Google Play Services are installed and up-to-date: https://support.google.com/googleplay/answer/9037938?hl=en\n• Telegram X is up-to-date\n• Firebase services are enabled\n• They are not blocked by your Internet service or DNS provider\n• If you have firewall or ad blocking software, Firebase domains are whitelisted\n• You can see 404 message in a browser on this page: https://firebaseinstallations.googleapis.com/\n• System date and time is correct\n• Problem doesn\'t go away after restarting your device\n• All system updates are installed\n• You are using the **official** version of Telegram X: @tgx_log\n\nIf the steps above do not help, try again with VPN that you trust, as it might be caused by Internet censorship applied by authorities in your region.</string>
   <string name="NotificationsGuideError">**Telegram X** was unable to display some notifications for this account due to an unknown system error.\n\nPlease make sure:\n• All system updates are installed\n• Telegram X is up-to-date\n• There are no notification restrictions in system settings.\n\nIf the steps above do not help, you might want to share the detailed error report to @tgandroidtests, or look up for troubleshooting tips for your device.</string>
   <string name="NotificationsGuideErrorChat">**Telegram X** was unable to display some notifications from %1$s due to an unknown system error.\n\nPlease make sure:\n• All system updates are installed\n• Telegram X is up-to-date\n• There are no notification restrictions in system settings.\n\nIf the steps above do not help, you might want to share the detailed error report to @tgandroidtests, or look up for troubleshooting tips for your device.</string>
+  <string name="NotificationsGuideCategoryLimit">**Telegram X** was unable to display some notifications for this account due to notification categories system limit.\n\nPlease make sure:\n• All system updates are installed\n• Telegram X is up-to-date\n• There are no notification restrictions in system settings.\n\nIf the steps above do not help, you might want to ask @tgandroidtests for troubleshooting tips for your device, or re-install Telegram X, which should help resolving this error, but requires logging in to your account again.</string>
+  <string name="NotificationsGuideCategoryLimitErrorChat">**Telegram X** was unable to display some notifications from %1$s due to notification categories system limit.\n\nPlease make sure:\n• All system updates are installed\n• Telegram X is up-to-date\n• There are no notification restrictions in system settings.\n\nIf the steps above do not help, you might want to ask @tgandroidtests for troubleshooting tips for your device, or re-install Telegram X, which should help resolving this error, but requires logging in to your account again.</string>
   <string name="TurnSyncOnApp">Turn on data sync</string>
   <string name="TurnSyncOnSystem">Turn on data sync</string>
   <string name="InstallGooglePlayServices">Get Google Play Services</string>
@@ -3580,6 +3657,10 @@
   <string name="EmojiSets">Emoji Sets</string>
   <string name="EmojiSetsInfo">Are you sure you want to clear unused emoji sets?</string>
   <string name="BigEmoji">Big Emoji</string>
+  <string name="DynamicStickerPackOrder">Dynamic Sets Order</string>
+  <string name="DynamicStickerPackOrderHint">Automatically place recently used sticker sets above others.</string>
+  <string name="DynamicEmojiPackOrder">Dynamic Pack Order</string>
+  <string name="DynamicEmojiPackOrderHint">Automatically place recently used emoji packs above others.</string>
 
   <string name="error_CHAT_ADMIN_REQUIRED">You do not have enough privileges to perform this action.</string>
   <string name="ChatPermissions">Chat Permissions</string>
@@ -3704,10 +3785,32 @@
   <string name="PrivacyVoiceVideoExceptionOff">Disallowed</string>
   <string name="PrivacyVoiceVideoExceptionContacts">Only contacts</string>
   <string name="PrivacyVoiceVideoTitle">Voice and Video Messages</string>
+
+  <string name="PrivacyGiftsNobody">Nobody can display gifts without approval</string>
+  <string name="PrivacyGiftsNobodyExcept">Nobody (%1$s) can display gifts without approval</string>
+  <string name="PrivacyGiftsContacts">Only contacts can display gifts without approval</string>
+  <string name="PrivacyGiftsContactsExcept">Only contacts (%1$s) can display gifts without approval</string>
+  <string name="PrivacyGiftsEverybody">Everybody can display gifts without approval</string>
+  <string name="PrivacyGiftsEverybodyExcept">Everybody (%1$s) can display gifts without approval</string>
+  <string name="PrivacyGiftsTitle">Auto-accept Gifts</string>
+  <string name="PrivacyGiftsExceptionContacts">Only contacts</string>
+  <string name="PrivacyGiftsExceptionOn">All</string>
+  <string name="PrivacyGiftsExceptionOff">Only approved</string>
+
   <string name="WhoCanSendVoiceVideo">Who can send me voice or video messages?</string>
   <string name="VoiceVideoPrivacyDesc">You can restrict who can send you voice or video messages with granular precision.</string>
+  <string name="WhoCanDisplayGifts">Who can display gifts on my profile?</string>
+  <string name="GiftsPrivacyDesc">Choose whether gifts from specific senders need your approval before they\'re visible to others on your profile.</string>
+  <string name="PrivacyMessage">Messages</string>
+  <string name="PrivacyMessageEverybody">Everybody can message you</string>
+  <string name="PrivacyMessageContactsPremium">Only contacts and **Premium** users</string>
+  <string name="PrivacyMessageTitle">Messages</string>
+  <string name="PrivacyMessagePreview">New Chats</string>
+  <string name="WhoCanSendMessages">Who can send me messages?</string>
+  <string name="NewChatsPrivacyDesc">You can restrict messages from users who are not in your contacts and don\'t have **Telegram&#160;Premium**.</string>
 
   <string name="EditPrivacyVoice">Send Me Voice Messages</string>
+  <string name="EditPrivacyGifts">Display Gifts without approval</string>
 
   <string name="WhoCanForwardLink">Who can add a link to my account when forwarding my messages?</string>
   <string name="WhoCanForwardLinkInfo">You can restrict who can include a link to your account when forwarding your messages to other chats.</string>
@@ -3774,6 +3877,10 @@
   <string name="ContactStateMutual">%1$s and you have added each other in the contacts list.</string>
   <string name="ContactStateOutgoing">%1$s is in your contacts list.</string>
 
+  <string name="ChatTypeMutualContact">Mutual contact</string>
+  <string name="ChatTypeContact">Contact</string>
+  <string name="ChatTypeNonContact">Non-Contact</string>
+
   <string name="ContactStateMutualNoPhone">%1$s and you have each other in the contacts list, but they do not share the phone number with you.</string>
   <string name="ContactStateOutgoingNoPhone">You do not have access to %1$s\'s phone number.</string>
 
@@ -3786,10 +3893,15 @@
   <string name="ArchiveChat">Archive Chat</string>
   <string name="UnarchiveChat">Unarchive Chat</string>
 
-  <string name="ReportLocation">Group unrelated to location?</string>
-  <string name="ReportLocationTitle">Report unrelated group</string>
-  <string name="ReportLocationDesc">Please let us know if this group is not related to this location:\n\n%1$s</string>
-  <string name="ReportLocationAction">Report</string>
+  <string name="ArchiveX_user">Archive chat with %1$s?</string>
+  <string name="ArchiveX_chat">Archive %1$s?</string>
+  <string name="ArchiveXInFolder_user">Archive chat with %1$s? It will remain in the list as current folder does not exclude archived chats.</string>
+  <string name="ArchiveXInFolder_chat">Archive %1$s? It will remain in the list as current folder does not exclude archived chats.</string>
+  <string name="UnarchiveX_user">Unarchive chat with %1$s?</string>
+  <string name="UnarchiveX_chat">Unarchive %1$s?</string>
+  <string name="UnarchiveXInFolder_user">Unarchive chat with %1$s? It will remain in the current chat folder.</string>
+  <string name="UnarchiveXInFolder_chat">Unarchive %1$s? It will remain in the current chat folder.</string>
+
   <string name="SharePhoneNumber">Share Phone Number</string>
   <string name="SharePhoneNumberAction">Share My Phone Number</string>
   <string name="PhoneNumber">Phone Number</string>
@@ -3946,6 +4058,10 @@
   <string name="ArchiveXChats_other">Archive %1$s chats</string>
   <string name="UnarchiveXChats_one">Unarchive %1$s chat</string>
   <string name="UnarchiveXChats_other">Unarchive %1$s chats</string>
+  <string name="ArchiveXChatsInFolder_one">Archive %1$s chat? It will remain in the list as current folder does not exclude archived chats.</string>
+  <string name="ArchiveXChatsInFolder_other">Archive %1$s chats? They will remain in the list as current folder does not exclude archived chats.</string>
+  <string name="UnarchiveXChatsInFolder_one">Unarchive %1$s chat? It will remain in the current chat folder.</string>
+  <string name="UnarchiveXChatsInFolder_other">Unarchive %1$s chats? They will remain the current chat folder.</string>
   <string name="ArchivedXChats_one">Archived %1$s chat</string>
   <string name="ArchivedXChats_other">Archived %1$s chats</string>
   <string name="UnarchivedXChats_one">Unarchived %1$s chat</string>
@@ -4056,6 +4172,9 @@
   <string name="SendOnceOnline">Send when online</string>
   <string name="SendReminder">Set a Reminder</string>
   <string name="SaveNoMarkdown">Save without markdown</string>
+
+  <string name="MediaOnceTurnOnSound">Please, turn on the sound first.</string>
+  <string name="MediaOnceWaitFilуDownload">Wait until the file is completely downloaded.</string>
 
   <string name="SendInXMinutes_one">Send in %1$s minute</string>
   <string name="SendInXMinutes_other">Send in %1$s minutes</string>
@@ -4241,6 +4360,7 @@
   <string name="PrivacyDefault">Default</string>
   <string name="PrivacyDefaultChat">Default for %1$s</string>
   <string name="PrivacyDefaultContacts">Default for contacts</string>
+  <string name="PrivacyDefaultBots">Default for bots and mini apps</string>
   <string name="PrivacyDefaultPremium">Default for **Telegram Premium** users</string>
   <string name="PrivacyDefaultXChats_one">Default for %1$s chat</string>
   <string name="PrivacyDefaultXChats_other">Default for %1$s chats</string>
@@ -4724,6 +4844,7 @@
   <string name="SessionLastLogin">Last Activity</string>
   <string name="SessionAccept">Accept</string>
   <string name="SessionReject">Reject</string>
+  <string name="SessionAcceptsCalls">Calls</string>
 
   <string name="SessionAccepts">What can be received on this device?</string>
   <string name="SessionSecretChats">Secret Chats</string>
@@ -4800,6 +4921,8 @@
   <string name="xPRs_other">%1$s PRs</string>
   <string name="PR">PR #%1$d</string>
 
+  <string name="OpenSourceGuide">**Telegram X** is open source. You can view the exact source code used to make the version you have installed.</string>
+
   <string name="ResetPasswordWait">You recently requested a password reset that was canceled. Please wait %1$s before making a new request.</string>
   <string name="RestorePasswordNoEmailText2">Since you didn’t provide a recovery email when setting up your password, your remaining options are either to remember your password or wait 7 days until your password is reset.</string>
   <string name="RestoreEmailTroubleText2">If you don’t have access to your recovery email, your remaining options are either to remember your password or wait 7 days until your password is reset.</string>
@@ -4815,12 +4938,29 @@
 
   <string name="PremiumRequiredSticker">Sending this sticker requires a **Telegram Premium** subscription.</string>
   <string name="PremiumRequiredVoiceVideo">This setting requires a **Telegram Premium** subscription.</string>
+  <string name="PremiumRequiredNewChats">This setting requires a **Telegram Premium** subscription.</string>
   <string name="PremiumRequired">This feature requires a **Telegram Premium** subscription.</string>
   <string name="PremiumRequiredMoveFolder">Subscribe to **Telegram Premium** to move the "%1$s" folder.</string>
-  <string name="PremiumRequiredCreateFolder">You have reached the limit of **%1$d** folders. You can double the limit to **%2$d** folders by subscribing to **Telegram Premium**.</string>
-  <string name="PremiumRequiredChatsInFolder">Sorry, you can\'t add more than **%1$d** chats to a folder. You can increase this limit to **%2$d** by subscribing to **Telegram Premium**.</string>
-  <string name="PremiumRequiredAddShareableFolder">You can only have **%1$d** shareable folders. Upgrade to **Telegram Premium** to increase this limit to **%2$d**.</string>
-  <string name="PremiumRequiredCreateChatFolderInviteLink">You reached the limit of links, either remove some or upgrade to Telegram Premium.</string>
+
+  <string name="LimitCreateFolder_one">You have reached the limit of **%1$s** folder.</string>
+  <string name="LimitCreateFolder_other">You have reached the limit of **%1$s** folders.</string>
+  <string name="PremiumLimitCreateFolder_one">You have reached the limit of %1$s folder. You can double the limit to %2$s by subscribing to **Telegram Premium**</string>
+  <string name="PremiumLimitCreateFolder_other">You have reached the limit of %1$s folders. You can double the limit to %2$s by subscribing to **Telegram Premium**</string>
+
+  <string name="LimitChatsInFolder_one">Sorry, you can\'t add more than **%1$s** chat to a folder. Please create a new one.</string>
+  <string name="LimitChatsInFolder_other">Sorry, you can\'t add more than **%1$s** chats to a folder. Please create a new one.</string>
+  <string name="PremiumLimitChatsInFolder_one">Sorry, you can\'t add more than %1$s chat to a folder. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
+  <string name="PremiumLimitChatsInFolder_other">Sorry, you can\'t add more than %1$s chats to a folder. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
+
+  <string name="LimitAddShareableFolder_one">Sorry, you can\'t have more than **%1$s** shareable folder.</string>
+  <string name="LimitAddShareableFolder_other">Sorry, you can\'t have more than **%1$s** shareable folders.</string>
+  <string name="PremiumLimitAddShareableFolder_one">You can only have %1$s shareable folder. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
+  <string name="PremiumLimitAddShareableFolder_other">You can only have %1$s shareable folders. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
+
+  <string name="LimitChatFolderInviteLink_one">Sorry, you can\'t have more than **%1$s** link to a folder.</string>
+  <string name="LimitChatFolderInviteLink_other">Sorry, you can\'t have more than **%1$s** links to a folder.</string>
+  <string name="PremiumLimitChatFolderInviteLink_one">You can only create **%1$s** link. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
+  <string name="PremiumLimitChatFolderInviteLink_other">You can only create **%1$s** links. You can increase the limit to %2$s by subscribing to **Telegram Premium**.</string>
 
   <string name="XRestrictedVoiceMessages">%1$s doesn\'t accept voice messages.</string>
   <string name="XRestrictedVideoMessages">%1$s doesn\'t accept video messages.</string>
@@ -4984,6 +5124,7 @@
   <string name="RemoveXStickerPacks_other">Remove %1$s sticker sets</string>
   <string name="LoadingMessageEmojiPack">Loading…</string>
   <string name="EmojiUsedFromSingle">Emoji used from %1$s pack</string>
+  <string name="EmojiStatusUsed">%1$s uses emoji from pack %2$s for their status icon.</string>
   <string name="EmojiUsedFromX">Emoji used from %1$s</string>
   <string name="xEmojiPacksEmojiSingle">* %1$s</string>
   <string name="ArchivedEmojiInfo">You can add up to %1$s emoji packs. Unused packs are archived when you add more.</string>
@@ -5033,6 +5174,10 @@
   <string name="ShowXMore_one">%1$s more</string>
   <string name="ShowXMore_other">%1$s more</string>
 
+  <string name="ArchiveAppearanceTitle">Appearance</string>
+  <string name="ArchiveAppearanceToggle">Show as folder</string>
+  <string name="ArchiveAppearanceHint">Display archive as a local folder. You can change its position in [settings](tg://settings/folders).</string>
+
   <string name="ChatTypes">Chat types</string>
   <string name="ChatFolders">Chat Folders</string>
   <string name="ChatFoldersInfo">Create folders for different groups of chats and quickly switch between them.</string>
@@ -5043,15 +5188,12 @@
   <string name="ChatFoldersPositionBottom">Bottom</string>
   <string name="ChatFolderChangeIcon">Change Icon</string>
   <string name="ChatFolderAddChats">Add Chats</string>
-  <string name="ChatFolderLimitReached">You have reached the limit of **%1$d** folders.</string>
-  <string name="ChatsInFolderLimitReached">Sorry, you can\'t add more than **%1$d** chats to a folder. Please create a new one.</string>
-  <string name="ChatFolderInviteLinksLimitReached">Sorry, you can\'t have more than **%1$d** links to a folder.</string>
-  <string name="ShareableFoldersLimitReached">Sorry, you can\'t have more than **%1$d** shareable folders.</string>
   <string name="FolderVisible">Folder visible</string>
   <string name="NewFolder">New Folder</string>
   <string name="CreateNewFolder">Create New Folder</string>
   <string name="HideFolder">Hide Folder</string>
-  <string name="HideFolderInfo">To display %1$s folder again, go to %2$s > %3$s</string>
+  <string name="HideFolderInfo2">To display %1$s folder again, go to Settings&#160;&gt;&#160;Chat Folders&#160;&gt;&#160;%1$s</string>
+  <string name="HideArchiveFolderInfo">To display Archive folder again, go to Settings&#160;&gt;&#160;Chat Folders&#160;&gt;&#160;Archive as Folder</string>
   <string name="HideAllChats">Hide All Chats</string>
   <string name="EditFolder">Edit Folder</string>
   <string name="EditFolders">Edit Folders</string>
@@ -5067,9 +5209,11 @@
   <string name="FolderRemoveExclusionConfirmUser">Are you sure you want to remove "%1$s" from the always excluded list?</string>
   <string name="FolderRemoveExclusionConfirmType">Are you sure you want to remove "%1$s" from the always excluded list?</string>
   <string name="IncludeChats">Include Chats</string>
+  <string name="IncludeChatsHint">Include chats…</string>
   <string name="IncludeChatsInfo_one">You can select only one cloud and only one secret chat.</string>
   <string name="IncludeChatsInfo_other">You can select up to %1$s cloud chats and the same number of secret chats.</string>
   <string name="ExcludeChats">Exclude Chats</string>
+  <string name="ExcludeChatsHint">Exclude chats…</string>
   <string name="ExcludeChatsInfo_one">You can select only one cloud chat and only one secret chat</string>
   <string name="ExcludeChatsInfo_other">You can select up to %1$s cloud chats and the same number of secret chats.</string>
   <string name="FolderIncludedChats">Included Chats</string>
@@ -5089,18 +5233,17 @@
   <string name="MainListBadge">main list</string>
   <string name="IconOnly">Icon only</string>
   <string name="LabelOnly">Label only</string>
-  <string name="LabelAndIcon">Label with icon</string>
-  <string name="IconWithLabelOnActiveFolder">[WIP] Icon with label on active folder</string>
+  <string name="LabelAndIcon2">Icon with label</string>
+  <string name="IconWithLabelOnActiveFolder2">Icon with label on active folder</string>
   <string name="DisplayFoldersAtTheTop">Display folders at the top</string>
   <string name="ChatsXShowMore_one">Show %1$s more</string>
   <string name="ChatsXShowMore_other">Show %1$s more</string>
 
   <string name="ExperimentalSettings">Experimental settings</string>
   <string name="ExperimentalSettingsWarning">**Warning:** those are experimental settings. Some may not work. Others may break the app. Any of them might disappear without a trace.\n\nUse at your own risk.</string>
+  <string name="ExperimentalSettingsUnavailable">No experiments available. Come back later.</string>
   <string name="Experiment_PeerIds">Show Peer IDs in Profiles</string>
   <string name="Experiment_PeerIdsInfo">Show API identifiers of users and chats in their profiles</string>
-  <string name="Experiment_ChatFolders">Enable Chat Folders</string>
-  <string name="Experiment_ChatFoldersInfo">Enable early access to folders. Appearance of this feature is planned to be changed in future versions of Telegram X, and it includes some unfinished work. Credit: [PR #297](https://github.com/TGX-Android/Telegram-X/pull/297) by nikita-toropov</string>
 
   <string name="PeerId">Peer ID</string>
   <string name="UserId">User ID</string>
@@ -5190,6 +5333,8 @@
   <string name="xGiveawayPrizePremium_other">%1$s **Telegram Premium** subscriptions %2$s.</string>
   <string name="xGiveawayPrizePremiumMonths_one">for %1$s month</string>
   <string name="xGiveawayPrizePremiumMonths_other">for %1$s months</string>
+  <string name="xGiveawayPrizeStar_one">%1$s **Telegram Star**.</string>
+  <string name="xGiveawayPrizeStar_other">%1$s **Telegram Stars**.</string>
   <string name="xGiveawayPrizeReceivedInfo_one">Your prize is a **Telegram Premium** subscription for **%1$s** month.</string>
   <string name="xGiveawayPrizeReceivedInfo_other">Your prize is a **Telegram Premium** subscription for **%1$s** months.</string>
 
@@ -5242,6 +5387,8 @@
 
   <string name="GiveawayInfoOngoingPart1_one">This giveaway is sponsored by the admins of %2$s, who acquired %1$s Telegram Premium subscription for %3$s months for its followers.</string>
   <string name="GiveawayInfoOngoingPart1_other">This giveaway is sponsored by the admins of %2$s, who acquired %1$s Telegram Premium subscriptions for %3$s months for its followers.</string>
+  <string name="GiveawayInfoOngoingPart1Stars_one">This giveaway is sponsored by the admins of %2$s, who acquired %1$s Telegram Star for its followers.</string>
+  <string name="GiveawayInfoOngoingPart1Stars_other">This giveaway is sponsored by the admins of %2$s, who acquired %1$s Telegram Stars for its followers.</string>
   <string name="GiveawayInfoOngoingPart2_one">On %2$s, Telegram will automatically select %1$s random user that joined %3$s.</string>
   <string name="GiveawayInfoOngoingPart2_other">On %2$s, Telegram will automatically select %1$s random users that joined %3$s.</string>
 
@@ -5255,6 +5402,8 @@
 
   <string name="GiveawayInfoEndedPart1_one">This giveaway was sponsored by the admins of %2$s, who acquired %1$s Telegram Premium subscription for %3$s months for its followers.</string>
   <string name="GiveawayInfoEndedPart1_other">This giveaway was sponsored by the admins of %2$s, who acquired %1$s Telegram Premium subscriptions for %3$s months for its followers.</string>
+  <string name="GiveawayInfoEndedPart1Stars_one">This giveaway was sponsored by the admins of %2$s, who acquired %1$s Telegram Star for its followers.</string>
+  <string name="GiveawayInfoEndedPart1Stars_other">This giveaway was sponsored by the admins of %2$s, who acquired %1$s Telegram Stars for its followers.</string>
   <string name="GiveawayInfoEndedPart2_one">On %2$s, Telegram automatically selected %1$s random user that joined %3$s.</string>
   <string name="GiveawayInfoEndedPart2_other">On %2$s, Telegram automatically selected %1$s random users that joined %3$s.</string>
   <string name="GiveawayInfoEndedPart3_one">%1$s of the winners already used their gift link.</string>
@@ -5264,6 +5413,7 @@
   <string name="GiveawayViewMyPrize">View my prize</string>
 
   <string name="EmulatorWarning">You are running **Telegram X** on an **emulated device**.\n\n**Note**: if you don\'t have an **existing** Telegram account, you may need a **real device** to create it.\n\nIn case you see this warning on a real device (such as phone, tablet, etc), press **report issue**.</string>
+  <string name="EmulatorWarningStrict">You are running **Telegram X** on an **emulated device**.\n\n**Note**: if you don\'t have an **existing** Telegram account, you may need a **real device** to create it.\n\nIf you have your phone connected to a PC, disconnect it and restart Telegram X.</string>
   <string name="EmulatorWarningTitle">Emulator detected</string>
   <string name="EmulatorWarningBtnReport">Report issue</string>
   <string name="EmulatorWarningBtnOk">Got it</string>
@@ -5292,6 +5442,10 @@
   <string name="ChatFolderInviteLinkNameHint">Name</string>
   <string name="ChatFolderInviteLinksInfo">Share access to some of this folder’s groups and channels with others.</string>
   <string name="ChatFolderSaveChangesBeforeCreatingANewInviteLink">Changes must be saved before creating a new link</string>
+  <string name="ChatFoldersSetupSuggestionTitle">Folders are here!</string>
+  <string name="ChatFoldersSetupSuggestionText">The wait is over. **Chat Folders** are here for everyone to enjoy… and **customize**.\n\nPrefer icons? We’ve got you covered. Bottom tabs? No problem. Filter chats inside a folder? Swipe tab to access it as well.\n\nArchive as folder, hiding tabs, marking folder as read, sharing folders, and more features are now available.</string>
+  <string name="ChatFoldersSetupSuggestionAction">Start setting up</string>
+  <string name="HoldToEditChatFoldersHint">Hold to edit folders and their appearance</string>
 
   <string name="xChatsToJoin_one">%1$s chat to join</string>
   <string name="xChatsToJoin_other">%1$s chats to join</string>
@@ -5341,6 +5495,11 @@
   <string name="AllowPremiumInvite">**Telegram Premium** subscribers</string>
   <string name="AllowPremiumInviteDesc">Always allow users with **Telegram Premium** subscription to add you to groups and channels.</string>
 
+  <string name="AllowBotsAndMiniApps">Allow Bots and Mini Apps</string>
+  <string name="AllowBotsAndMiniAppsDesc">Automatically accept gifts from bots and mini apps.</string>
+  <string name="RestrictBotsAndMiniApps">Restrict Bots and Mini Apps</string>
+  <string name="RestrictBotsAndMiniAppsDesc">Require approval when receiving gifts from bots and mini apps.</string>
+
   <string name="HideReadTime">Hide Read Time</string>
   <string name="HideReadTimeDesc">Hide the time when you read messages from people who can\'t see your last seen. If you turn this on, their read time will also be hidden from you (unless you are a Premium user).\n\nThis setting does not affect group chats.</string>
 
@@ -5352,6 +5511,13 @@
   <string name="ChangeEmailResendConfirm">New email was sent to %1$s.</string>
   <string name="ChangeEmailConfirmCode">Please enter the code that we have sent to your new email %1$s.</string>
 
+  <string name="ChatBoosted">%1$s boosted the group</string>
+  <string name="ChatBoosted_outgoing">You boosted the group</string>
+  <string name="ChatBoostedXTimes_one">%2$s boosted the group %1$s time</string>
+  <string name="ChatBoostedXTimes_other">%2$s boosted the group %1$s times</string>
+  <string name="ChatBoostedXTimes_outgoing_one">You boosted the group %1$s time</string>
+  <string name="ChatBoostedXTimes_outgoing_other">You boosted the group %1$s times</string>
+
   <string name="ReadDate_now">Read just now</string>
   <string name="ReadDate_seconds_one">Read %1$s second ago</string>
   <string name="ReadDate_seconds_other">Read %1$s seconds ago</string>
@@ -5361,7 +5527,44 @@
   <string name="ReadDate_hours_other">Read %1$s hours ago</string>
   <string name="ReadDate_today">Read at %1$s</string>
   <string name="ReadDate_yesterday">Read yesterday at %1$s</string>
-  <string name="ReadDate_weekday">Read %1$s at %2$s</string>
+  <string name="ReadDate_weekday">Read on %1$s at %2$s</string>
   <string name="ReadDate_date">Read %1$s at %2$s</string>
+
+  <string name="RenewedSubscriptionUntilX">%1$s renewed subscription until %2$s</string>
+  <string name="RenewedSubscription">%1$s renewed subscription</string>
+  <string name="WonXStars_one">You won %1$s star in a giveaway</string>
+  <string name="WonXStars_other">You won %1$s stars in a giveaway</string>
+
+  <string name="PlaybackSpeed">Speed</string>
+  <string name="PlaybackSpeed50">Very slow</string>
+  <string name="PlaybackSpeed70">Slow</string>
+  <string name="PlaybackSpeed100">Regular</string>
+  <string name="PlaybackSpeed120">Slightly faster</string>
+  <string name="PlaybackSpeed150">Faster</string>
+  <string name="PlaybackSpeed200">Doubled speed</string>
+
+  <string name="PlaybackSpeedHintAudio100">Audio will play at normal speed</string>
+  <string name="PlaybackSpeedHintAudio150">Audio will play at 1.5x speed</string>
+  <string name="PlaybackSpeedHintAudio200">Audio will play two times faster</string>
+  <string name="PlaybackSpeedHintVideo100">Video will play at normal speed</string>
+  <string name="PlaybackSpeedHintVideo150">Video will play at 1.5x speed</string>
+  <string name="PlaybackSpeedHintVideo200">Video will play two times faster</string>
+
+  <string name="PlaybackSpeedHintHold">Hold to access more options</string>
+  <string name="PlaybackSpeedHintSwipe">Hold and swipe horizontally for precise adjustment</string>
+  <string name="PlaybackSpeedHintTemplate">%1$s.\n%2$s.</string>
+
+  <string name="DeactivatedBot">deactivated bot</string>
+
+  <string name="ReportAd">Report Ad</string>
+  <string name="ReportAdSubtitle">What\'s wrong with this ad?</string>
+  <string name="ReportAdPolicy">Learn more about our [Ad Policies and Guidelines](https://ads.telegram.org/guidelines).</string>
+  <string name="ReportAdOk">Add will be reviewed by moderators.</string>
+  <string name="ReportAdFail">There was an error while reporting this ad.</string>
+  <string name="ReportAdHidden">You will no longer see any ads.</string>
+  <string name="ReportAdPremiumRequired">**Telegram Premium** subscription is required to hide ads.</string>
+
+  <string name="xBotUsers_one">%1$s monthly user</string>
+  <string name="xBotUsers_other">%1$s monthly users</string>
 
 </resources>

@@ -57,9 +57,9 @@ import java.util.concurrent.TimeUnit;
 
 import me.vkryl.android.ViewUtils;
 import me.vkryl.android.widget.FrameLayoutFix;
-import me.vkryl.td.ChatId;
-import me.vkryl.td.MessageId;
-import me.vkryl.td.Td;
+import tgx.td.ChatId;
+import tgx.td.MessageId;
+import tgx.td.Td;
 
 public class GiftCodeController extends MediaBottomBaseController<Void> implements View.OnClickListener {
   private final @Nullable TdApi.MessagePremiumGiftCode giftCodeContent;
@@ -148,7 +148,7 @@ public class GiftCodeController extends MediaBottomBaseController<Void> implemen
       @Override
       protected void setValuedSetting (ListItem item, SettingView view, boolean isUpdate) {
         view.setType(SettingView.TYPE_INFO_COMPACT);
-        view.setData(item.getStringValue());
+        view.setData(item.getCharSequenceValue());
         view.forcePadding(Screen.dp(72), Screen.dp(16));
         AvatarDrawModifier dm = (AvatarDrawModifier) item.getDrawModifier();
         if (dm != null) {
