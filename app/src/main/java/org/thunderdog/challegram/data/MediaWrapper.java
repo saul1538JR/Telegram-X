@@ -85,7 +85,7 @@ import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class MediaWrapper implements FileProgressComponent.SimpleListener, FileProgressComponent.FallbackFileProvider {
   public interface OnClickListener {

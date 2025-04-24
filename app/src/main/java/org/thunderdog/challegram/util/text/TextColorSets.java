@@ -154,16 +154,6 @@ public final class TextColorSets {
       return ColorId.textLinkPressHighlight;
     }
 
-    @Override
-    default int quoteTextColorId () {
-      return ColorId.blockQuoteText;
-    }
-
-    @Override
-    default int quoteLineColorId () {
-      return ColorId.blockQuoteLine;
-    }
-
     Regular
       NORMAL = new Regular() { },
       LIGHT = new Regular() {
@@ -289,16 +279,6 @@ public final class TextColorSets {
       return ColorId.bubbleOut_textLinkPressHighlight;
     }
 
-    @Override
-    default int quoteTextColorId () {
-      return ColorId.bubbleOut_blockQuoteText;
-    }
-
-    @Override
-    default int quoteLineColorId () {
-      return ColorId.bubbleOut_blockQuoteLine;
-    }
-
     BubbleOut
       NORMAL = () -> ColorId.bubbleOut_text,
       LIGHT = () -> ColorId.bubbleOut_time,
@@ -360,16 +340,6 @@ public final class TextColorSets {
     @Override
     default int pressedBackgroundColorId () {
       return ColorId.bubbleIn_textLinkPressHighlight;
-    }
-
-    @Override
-    default int quoteTextColorId () {
-      return ColorId.bubbleIn_blockQuoteText;
-    }
-
-    @Override
-    default int quoteLineColorId () {
-      return ColorId.bubbleIn_blockQuoteLine;
     }
 
     BubbleIn

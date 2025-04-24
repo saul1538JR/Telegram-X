@@ -34,7 +34,7 @@ import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.util.text.FormattedText;
 import org.thunderdog.challegram.util.text.TextEntity;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 @SuppressLint("ViewConstructor")
 public class EmojiPacksInfoView extends CustomTextView {

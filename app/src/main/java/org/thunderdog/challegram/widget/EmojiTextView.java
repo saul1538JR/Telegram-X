@@ -25,7 +25,6 @@ import android.view.inputmethod.InputConnection;
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 
-import org.thunderdog.challegram.emoji.CustomEmojiSurfaceProvider;
 import org.thunderdog.challegram.emoji.EmojiFilter;
 import org.thunderdog.challegram.emoji.EmojiInputConnection;
 import org.thunderdog.challegram.emoji.EmojiUpdater;
@@ -64,7 +63,7 @@ public class EmojiTextView extends TextView implements Destroyable {
   public final void setFilters (@NonNull InputFilter[] filters) {
     if (emojiUpdater == null)
       emojiUpdater = new EmojiUpdater(this);
-    super.setFilters(newFilters(this, filters, emojiUpdater));
+    super.setFilters(newFilters(filters, emojiUpdater));
   }
 
   @Override
@@ -87,7 +86,7 @@ public class EmojiTextView extends TextView implements Destroyable {
     return super.onCreateInputConnection(editorInfo);
   }
 
-  static InputFilter[] newFilters (android.widget.TextView textView, @NonNull InputFilter[] filters, InputFilter emojiUpdater) {
+  static InputFilter[] newFilters (@NonNull InputFilter[] filters, InputFilter emojiUpdater) {
     int emojiFilterIndex = -1;
     int emojiUpdaterIndex = -1;
     for (int i = 0; i < filters.length; i++) {
@@ -109,10 +108,7 @@ public class EmojiTextView extends TextView implements Destroyable {
         filters.length
     );
     if (emojiFilterIndex == -1) {
-      CustomEmojiSurfaceProvider customEmojiSurfaceProvider = textView instanceof CustomEmojiSurfaceProvider ?
-        (CustomEmojiSurfaceProvider) textView :
-        null;
-      filtersList.add(new EmojiFilter(customEmojiSurfaceProvider));
+      filtersList.add(new EmojiFilter());
       if (emojiUpdaterIndex == -1) {
         filtersList.add(emojiUpdater);
       }

@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -47,7 +46,7 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
 
   protected abstract int getHeaderHeight ();
   protected abstract int getContentOffset ();
-  protected abstract @Nullable HeaderView onCreateHeaderView ();
+  protected abstract HeaderView onCreateHeaderView ();
   protected void onBeforeCreateView () {};
   protected void onAfterCreateView () {};
 
@@ -81,15 +80,17 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
     contentView = new RelativeLayout(context) {
       @Override
       protected void onDraw (Canvas canvas) {
-        canvas.drawRect(0, headerTranslationY, getMeasuredWidth(), getMeasuredHeight(), Paints.fillingPaint(Theme.getColor(getBackgroundColorId())));
+        if (headerView != null) {
+          canvas.drawRect(0, headerTranslationY, getMeasuredWidth(), getMeasuredHeight(), Paints.fillingPaint(Theme.getColor(getBackgroundColorId())));
+        }
         super.onDraw(canvas);
       }
 
       @Override
       protected boolean drawChild (Canvas canvas, View child, long drawingTime) {
-        if (child == pagerInFrameLayoutFix) {
+        if (child == pagerInFrameLayoutFix && headerView != null) {
           canvas.save();
-          canvas.clipRect(0, headerTranslationY + (headerView != null ? HeaderView.getTopOffset() : 0), getMeasuredWidth(), getMeasuredHeight());
+          canvas.clipRect(0, headerTranslationY + HeaderView.getTopOffset(), getMeasuredWidth(), getMeasuredHeight());
           boolean result = super.drawChild(canvas, child, drawingTime);
           canvas.restore();
           return result;
@@ -111,13 +112,13 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
     wrapView = new FrameLayoutFix(context) {
       @Override
       public boolean onInterceptTouchEvent (MotionEvent e) {
-        boolean b = (e.getAction() == MotionEvent.ACTION_DOWN && e.getY() < (getTopEdge() + HeaderView.getTopOffset()));
+        boolean b = (e.getAction() == MotionEvent.ACTION_DOWN && headerView != null && e.getY() < (getTopEdge() + HeaderView.getTopOffset()));
         return b || super.onInterceptTouchEvent(e);
       }
 
       @Override
       public boolean onTouchEvent (MotionEvent e) {
-        boolean b = (e.getAction() == MotionEvent.ACTION_DOWN && e.getY() < (getTopEdge() + HeaderView.getTopOffset()));
+        boolean b = (e.getAction() == MotionEvent.ACTION_DOWN && headerView != null && e.getY() < (getTopEdge() + HeaderView.getTopOffset()));
         return b && super.onTouchEvent(e);
       }
 
@@ -164,9 +165,7 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
 
     wrapView.addView(fixView);
     wrapView.addView(contentView);
-    if (headerView != null) {
-      wrapView.addView(headerView);
-    }
+    wrapView.addView(headerView);
     wrapView.setWillNotDraw(false);
     addThemeInvalidateListener(wrapView);
     if (HeaderView.getTopOffset() > 0) {
@@ -297,12 +296,12 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
   }
 
   protected int getTopEdge () {
-    return Math.max(0, (int) (headerTranslationY - HeaderView.getTopOffset()));
+    return Math.max(0, (int) ((headerView != null ? headerTranslationY : 0) - HeaderView.getTopOffset()));
   }
 
   @Override
   public boolean shouldTouchOutside (float x, float y) {
-    return y < headerTranslationY - (headerView != null ? getHeaderHeight(true) : 0);
+    return headerView != null && y < headerTranslationY - HeaderView.getSize(true);
   }
 
   @Override
@@ -320,7 +319,7 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
 
   public void checkContentScrollY (BottomSheetBaseControllerPage c) {
     int maxScrollY = maxItemsScrollYOffset();
-    int scrollY = (int) (getContentOffset() - headerTranslationY + HeaderView.getTopOffset()); //();
+    int scrollY = (int) (getContentOffset() - (headerView != null ? headerTranslationY : 0) + HeaderView.getTopOffset()); //();
     if (c != null) {
       c.ensureMaxScrollY(scrollY, maxScrollY);
     }
@@ -434,7 +433,7 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
     popupLayout.setDismissListener(l);
   }
 
-  protected final PopupLayout getPopupLayout () {
+  protected PopupLayout getPopupLayout () {
     return popupLayout;
   }
 
@@ -452,7 +451,7 @@ public abstract class BottomSheetViewController<T> extends ViewPagerController<T
 
   }
 
-  protected void setLickViewColor (@ColorInt int color) {
+  protected void setLickViewColor (int color) {
     if (lickView != null) {
       lickView.setHeaderBackground(color);
     }

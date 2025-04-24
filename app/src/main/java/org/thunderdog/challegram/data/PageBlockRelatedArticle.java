@@ -37,7 +37,7 @@ import org.thunderdog.challegram.util.text.TextColorSets;
 import org.thunderdog.challegram.util.text.TextWrapper;
 
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class PageBlockRelatedArticle extends PageBlock {
   private final TdApi.PageBlockRelatedArticle article;

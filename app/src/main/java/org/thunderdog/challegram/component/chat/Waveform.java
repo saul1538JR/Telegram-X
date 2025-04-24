@@ -210,10 +210,6 @@ public class Waveform {
   }
 
   public void draw (Canvas c, float progress, int startX, int centerY) {
-    draw(c, progress, startX, centerY, false);
-  }
-
-  public void draw (Canvas c, float progress, int startX, int centerY, boolean hideActive) {
     switch (mode) {
       case MODE_BITMAP: {
         if (chunks == null || bitmap == null || bitmap.isRecycled()) {
@@ -230,20 +226,16 @@ public class Waveform {
           break;
         }
         if (progress == 1f) {
-          if (!hideActive) {
-            int colorId = isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive;
-            c.drawBitmap(bitmap, startX, topY, PorterDuffPaint.get(colorId));
-          }
+          int colorId = isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive;
+          c.drawBitmap(bitmap, startX, topY, PorterDuffPaint.get(colorId));
           break;
         }
         float endX = progress * (float) currentWidth;
-        if (!hideActive) {
-          c.save();
-          c.clipRect(startX, topY, startX + endX, topY + bitmap.getHeight());
-          int colorId = isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive;
-          c.drawBitmap(bitmap, startX, topY, PorterDuffPaint.get(colorId));
-          c.restore();
-        }
+        c.save();
+        c.clipRect(startX, topY, startX + endX, topY + bitmap.getHeight());
+        int colorId = isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive;
+        c.drawBitmap(bitmap, startX, topY, PorterDuffPaint.get(colorId));
+        c.restore();
         c.save();
         c.clipRect(startX + endX, topY, startX + bitmap.getWidth(), topY + bitmap.getHeight());
         c.drawBitmap(bitmap, startX, topY, paint);
@@ -256,9 +248,6 @@ public class Waveform {
         }
         int cx = startX;
         if (progress == 0f || progress == 1f) {
-          if (hideActive && progress == 1f ) {
-            break;
-          }
           paint.setColor(Theme.getColor(progress == 0f ? (isOutBubble ? ColorId.bubbleOut_waveformInactive : ColorId.waveformInactive) : (isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive)));
           for (Chunk chunk : chunks) {
             chunk.draw(c, cx, centerY, expandFactor, paint);
@@ -270,22 +259,20 @@ public class Waveform {
         int topY = centerY - bound;
         int bottomY = centerY + bound;
         float endX = startX + progress * (float) currentWidth;
+        c.save();
+        c.clipRect(startX, topY, endX, bottomY);
+        paint.setColor(Theme.getColor(isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive));
         int i = 0;
-        if (!hideActive) {
-          c.save();
-          c.clipRect(startX, topY, endX, bottomY);
-          paint.setColor(Theme.getColor(isOutBubble ? ColorId.bubbleOut_waveformActive : ColorId.waveformActive));
-          for (Chunk chunk : chunks) {
-            chunk.draw(c, cx, centerY, expandFactor, paint);
-            cx += width + spacing;
-            if (cx > endX) {
-              cx -= width + spacing;
-              break;
-            }
-            i++;
+        for (Chunk chunk : chunks) {
+          chunk.draw(c, cx, centerY, expandFactor, paint);
+          cx += width + spacing;
+          if (cx > endX) {
+            cx -= width + spacing;
+            break;
           }
-          c.restore();
+          i++;
         }
+        c.restore();
         c.save();
         c.clipRect(endX - 1, topY, startX + currentWidth, bottomY);
         paint.setColor(Theme.getColor(isOutBubble ? ColorId.bubbleOut_waveformInactive : ColorId.waveformInactive));

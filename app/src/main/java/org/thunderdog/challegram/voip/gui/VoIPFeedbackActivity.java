@@ -73,11 +73,7 @@ public class VoIPFeedbackActivity extends Activity {
     params.topMargin = Screen.dp(16f);
     ll.addView(bar, params);
 
-    int accountId = getIntent().getIntExtra("account_id", TdlibAccount.NO_ID);
-    int callId = getIntent().getIntExtra("call_id", 0);
-    Tdlib tdlib = TdlibManager.getTdlib(accountId); // FIXME: acquire reference?
-
-    final MaterialEditTextGroup commentBox = new MaterialEditTextGroup(this, tdlib);
+    final MaterialEditTextGroup commentBox = new MaterialEditTextGroup(this);
     commentBox.setHint(R.string.VoipFeedbackCommentHint);
     commentBox.setVisibility(View.GONE);
     commentBox.getEditText().setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -90,10 +86,13 @@ public class VoIPFeedbackActivity extends Activity {
       .setTitle(Lang.getString(R.string.AppName))
       .setView(ll)
       .setPositiveButton(Lang.getOK(), (dialog, which) -> {
+        int accountId = getIntent().getIntExtra("account_id", TdlibAccount.NO_ID);
+        int callId = getIntent().getIntExtra("call_id", 0);
         int rating = bar.getRating();
         String comment = rating < 5 ? commentBox.getText().toString() : "";
         Log.i(Log.TAG_VOIP, "Submitting call feedback, call_id: %d, rating: %d, comment: %s", callId, rating, comment);
-        tdlib.send(new TdApi.SendCallRating(callId, rating, comment, null), tdlib.typedOkHandler());
+        Tdlib tdlib = TdlibManager.getTdlib(accountId);
+        tdlib.client().send(new TdApi.SendCallRating(callId, rating, comment, null), tdlib.okHandler());
         finishDelayed();
       })
       .setNegativeButton(Lang.getString(R.string.Cancel), (dialog, which) -> {

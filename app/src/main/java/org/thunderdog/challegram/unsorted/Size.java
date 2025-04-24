@@ -16,7 +16,10 @@ package org.thunderdog.challegram.unsorted;
 
 import org.thunderdog.challegram.tool.Screen;
 
+import me.vkryl.core.MathUtils;
+
 @SuppressWarnings(value = "SpellCheckingInspection")
+@Deprecated
 public class Size {
   //Raw sizes
 
@@ -37,7 +40,7 @@ public class Size {
   public static final float NAVIGATION_PREVIEW_TRANSLATE_FACTOR = 3.5f;
 
   public static float convertExpandedFactor (float scaleFactor) {
-    return getHeaderSizeDifference(true) * scaleFactor / (float) getHeaderSizeDifference(false);
+    return MathUtils.clamp(getHeaderSizeDifference(true) * scaleFactor / (float) getHeaderSizeDifference(false));
   }
 
   public static int getHeaderPortraitSize () {

@@ -30,7 +30,7 @@ import org.thunderdog.challegram.theme.ThemeDeprecated;
 import org.thunderdog.challegram.tool.Screen;
 
 import me.vkryl.core.StringUtils;
-import tgx.td.ChatId;
+import me.vkryl.td.ChatId;
 
 public class ChatHeaderView extends ComplexHeaderView {
   public interface Callback {

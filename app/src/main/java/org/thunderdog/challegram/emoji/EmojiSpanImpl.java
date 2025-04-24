@@ -43,7 +43,9 @@ class EmojiSpanImpl extends ReplacementSpan implements EmojiSpan {
   }
 
   protected final @Nullable EmojiInfo info;
-  protected final EmojiSize size = new EmojiSize();
+
+  private final Paint.FontMetricsInt mTmpFontMetrics = new Paint.FontMetricsInt();
+  protected int mSize = -1;
 
   protected EmojiSpanImpl (@Nullable EmojiInfo info) {
     this.info = info;
@@ -66,20 +68,33 @@ class EmojiSpanImpl extends ReplacementSpan implements EmojiSpan {
 
   @Override
   public final int getRawSize (Paint paint) {
-    size.initialize(paint, null, true);
-    return size.getSize();
+    if (mSize == -1) {
+      getSize(paint, null, 0, 0, null);
+    }
+    return mSize;
   }
 
   @Override
   public final int getSize (@NonNull final Paint paint, final CharSequence text, final int start,
                       final int end, final Paint.FontMetricsInt fm) {
-    size.initialize(paint, fm, false);
-    return size.getSize();
+    paint.getFontMetricsInt(mTmpFontMetrics);
+    mSize = Math.abs(mTmpFontMetrics.descent - mTmpFontMetrics.ascent);
+
+    if (fm != null) {
+      fm.ascent = mTmpFontMetrics.ascent;
+      fm.descent = mTmpFontMetrics.descent;
+      fm.top = mTmpFontMetrics.top;
+      fm.bottom = mTmpFontMetrics.bottom;
+    }
+
+    return mSize;
   }
 
   protected final int getEmojiSize (Paint paint) {
-    size.initialize(paint, null, true);
-    return size.getSize();
+    if (mSize == -1) {
+      getRawSize(paint);
+    }
+    return mSize;
   }
 
   protected boolean needInvalidate;

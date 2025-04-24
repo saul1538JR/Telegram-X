@@ -19,7 +19,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -51,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 
 import me.vkryl.android.util.ClickHelper;
 import me.vkryl.core.collection.IntList;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class SharedMediaController extends SharedBaseController<MediaItem> implements ClickHelper.Delegate, ForceTouchView.ActionListener {
   public SharedMediaController (Context context, Tdlib tdlib) {
@@ -65,6 +64,17 @@ public class SharedMediaController extends SharedBaseController<MediaItem> imple
     this.filter = filter;
     return this;
   }
+
+  /*@Override
+  public int getIcon () {
+    switch (type) {
+      case TYPE_PHOTOS_AND_VIDEOS:
+        return R.drawable.baseline_image_20;
+      case TYPE_GIFS:
+        return R.drawable.baseline_gif_20;
+    }
+    return 0;
+  }*/
 
   @Override
   public CharSequence getName () {
@@ -81,24 +91,6 @@ public class SharedMediaController extends SharedBaseController<MediaItem> imple
         return Lang.getString(Settings.instance().needSeparateMediaTab() ? R.string.TabVideoMessagesLong : R.string.TabVideoMessages);
     }
     return "";
-  }
-
-  @DrawableRes
-  @Override
-  public int getIcon () {
-    switch (provideSearchFilter().getConstructor()) {
-      case TdApi.SearchMessagesFilterPhotoAndVideo.CONSTRUCTOR:
-        return R.drawable.baseline_image_24;
-      case TdApi.SearchMessagesFilterVideo.CONSTRUCTOR:
-        return R.drawable.baseline_videocam_24;
-      case TdApi.SearchMessagesFilterPhoto.CONSTRUCTOR:
-        return R.drawable.baseline_camera_alt_24;
-      case TdApi.SearchMessagesFilterAnimation.CONSTRUCTOR:
-        return R.drawable.deproko_baseline_gif_24;
-      case TdApi.SearchMessagesFilterVideoNote.CONSTRUCTOR:
-        return R.drawable.deproko_baseline_msg_video_24;
-    }
-    return 0;
   }
 
   @Override
@@ -481,9 +473,7 @@ public class SharedMediaController extends SharedBaseController<MediaItem> imple
       IntList icons = new IntList(3);
       StringList strings = new StringList(3);
 
-      TdApi.MessageProperties properties = tdlib.getMessagePropertiesSync(message);
-
-      if (properties.canBeDeletedOnlyForSelf || properties.canBeDeletedForAllUsers) {
+      if (message.canBeDeletedOnlyForSelf || message.canBeDeletedForAllUsers) {
         ids.append(R.id.btn_messageDelete);
         icons.append(R.drawable.baseline_delete_24);
         strings.append(R.string.Delete);
@@ -495,7 +485,7 @@ public class SharedMediaController extends SharedBaseController<MediaItem> imple
         strings.append(R.string.Select);
       }
 
-      if (properties.canBeForwarded) {
+      if (message.canBeForwarded) {
         ids.append(R.id.btn_messageShare);
         icons.append(R.drawable.baseline_forward_24);
         strings.append(R.string.Share);

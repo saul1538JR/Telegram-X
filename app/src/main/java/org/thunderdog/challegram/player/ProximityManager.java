@@ -41,9 +41,8 @@ import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.unsorted.Settings;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
-@SuppressWarnings("deprecation")
 public class ProximityManager implements Settings.RaiseToSpeakListener, SensorEventListener, UI.StateListener {
   public interface Delegate {
     void onUpdateAttributes ();

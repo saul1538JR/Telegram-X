@@ -56,7 +56,7 @@ import me.vkryl.android.AppInstallationUtil;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.RunnableBool;
 import me.vkryl.core.reference.ReferenceList;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class AppUpdater implements InstallStateUpdatedListener, FileUpdateListener, ConnectionListener {
   public interface Listener {

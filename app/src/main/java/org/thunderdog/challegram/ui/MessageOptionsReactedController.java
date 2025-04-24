@@ -26,7 +26,7 @@ import org.thunderdog.challegram.widget.PopupLayout;
 
 import java.util.List;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class MessageOptionsReactedController extends BottomSheetViewController.BottomSheetBaseRecyclerViewController<Void> implements View.OnClickListener {
   private SettingsAdapter adapter;

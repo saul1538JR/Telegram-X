@@ -32,7 +32,7 @@ import me.vkryl.core.reference.ReferenceIntMap;
 import me.vkryl.core.reference.ReferenceList;
 import me.vkryl.core.reference.ReferenceLongMap;
 import me.vkryl.core.reference.ReferenceMap;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TdlibListeners {
   private final Tdlib tdlib;
@@ -52,6 +52,7 @@ public class TdlibListeners {
   final ReferenceList<CleanupStartupDelegate> componentDelegates;
   final ReferenceList<TdlibOptionListener> optionListeners;
   final ReferenceList<CounterChangeListener> totalCountersListeners;
+  final ReferenceList<ChatsNearbyListener> chatsNearbyListeners;
   final ReferenceList<PrivacySettingsListener> privacySettingsListeners;
   final ReferenceList<PrivateCallListener> privateCallListeners;
   final ReferenceIntMap<PrivateCallListener> specificPrivateCallListeners;
@@ -93,6 +94,7 @@ public class TdlibListeners {
     this.componentDelegates = new ReferenceList<>(true);
     this.optionListeners = new ReferenceList<>(true);
     this.totalCountersListeners = new ReferenceList<>(true);
+    this.chatsNearbyListeners = new ReferenceList<>(true);
     this.privacySettingsListeners = new ReferenceList<>();
     this.privateCallListeners = new ReferenceList<>(true);
     this.specificPrivateCallListeners = new ReferenceIntMap<>(true);
@@ -163,6 +165,9 @@ public class TdlibListeners {
       if (globalListener instanceof CounterChangeListener) {
         totalCountersListeners.add((CounterChangeListener) globalListener);
       }
+      if (globalListener instanceof ChatsNearbyListener) {
+        chatsNearbyListeners.add((ChatsNearbyListener) globalListener);
+      }
       if (globalListener instanceof AnimatedEmojiListener) {
         animatedEmojiListeners.add((AnimatedEmojiListener) globalListener);
       }
@@ -210,6 +215,9 @@ public class TdlibListeners {
       }
       if (globalListener instanceof CounterChangeListener) {
         totalCountersListeners.remove((CounterChangeListener) globalListener);
+      }
+      if (globalListener instanceof ChatsNearbyListener) {
+        chatsNearbyListeners.remove((ChatsNearbyListener) globalListener);
       }
       if (globalListener instanceof AnimatedEmojiListener) {
         animatedEmojiListeners.remove((AnimatedEmojiListener) globalListener);
@@ -1487,6 +1495,20 @@ public class TdlibListeners {
     });
   }
 
+  // updateUsersNearby
+
+  private static void updateUsersNearby (TdApi.ChatNearby[] usersNearby, @Nullable Iterator<ChatsNearbyListener> list) {
+    if (list != null) {
+      while (list.hasNext()) {
+        list.next().onUsersNearbyUpdated(usersNearby);
+      }
+    }
+  }
+
+  void updateUsersNearby (TdApi.UpdateUsersNearby update) {
+    updateUsersNearby(update.usersNearby, chatsNearbyListeners.iterator());
+  }
+
   // updateChatIsMarkedAsUnread
 
   void updateChatIsMarkedAsUnread (TdApi.UpdateChatIsMarkedAsUnread update) {
@@ -1560,41 +1582,58 @@ public class TdlibListeners {
 
   // updateNotificationSettings
 
+  private static void notifySettingsChanged (@Nullable Iterator<NotificationSettingsListener> list, TdApi.NotificationSettingsScope scope, TdApi.ScopeNotificationSettings settings) {
+    if (list != null) {
+      while (list.hasNext()) {
+        list.next().onNotificationSettingsChanged(scope, settings);
+      }
+    }
+  }
+
+  private static void notifySettingsChanged (@Nullable Iterator<NotificationSettingsListener> list, long chatId, TdApi.ChatNotificationSettings settings) {
+    if (list != null) {
+      while (list.hasNext()) {
+        list.next().onNotificationSettingsChanged(chatId, settings);
+      }
+    }
+  }
+
+  private static void notifyChannelChanged (@Nullable Iterator<NotificationSettingsListener> list, TdApi.NotificationSettingsScope scope) {
+    if (list != null) {
+      while (list.hasNext()) {
+        list.next().onNotificationChannelChanged(scope);
+      }
+    }
+  }
+
+  private static void notifyChannelChanged (@Nullable Iterator<NotificationSettingsListener> list, long chatId) {
+    if (list != null) {
+      while (list.hasNext()) {
+        list.next().onNotificationChannelChanged(chatId);
+      }
+    }
+  }
+
   @TdlibThread
   void updateNotificationSettings (TdApi.UpdateChatNotificationSettings update) {
-    RunnableData<NotificationSettingsListener> act = listener ->
-      listener.onNotificationSettingsChanged(update.chatId, update.notificationSettings);
-    runUpdate(settingsListeners.iterator(), act);
-    runUpdate(chatSettingsListeners.iterator(update.chatId), act);
+    notifySettingsChanged(settingsListeners.iterator(), update.chatId, update.notificationSettings);
+    notifySettingsChanged(chatSettingsListeners.iterator(update.chatId), update.chatId, update.notificationSettings);
   }
 
   @TdlibThread
   void updateNotificationSettings (TdApi.UpdateScopeNotificationSettings update) {
-    runUpdate(settingsListeners.iterator(), listener ->
-      listener.onNotificationSettingsChanged(update.scope, update.notificationSettings)
-    );
-  }
-
-  @TdlibThread
-  void updateReactionNotificationSettings (TdApi.UpdateReactionNotificationSettings update) {
-    runUpdate(settingsListeners.iterator(), listener ->
-      listener.onReactionNotificationSettingsChanged(update.notificationSettings)
-    );
+    notifySettingsChanged(settingsListeners.iterator(), update.scope, update.notificationSettings);
   }
 
   @AnyThread
   void updateNotificationChannel (TdApi.NotificationSettingsScope scope) {
-    runUpdate(settingsListeners.iterator(), listener ->
-      listener.onNotificationChannelChanged(scope)
-    );
+    notifyChannelChanged(settingsListeners.iterator(), scope);
   }
 
   @AnyThread
   void updateNotificationChannel (long chatId) {
-    RunnableData<NotificationSettingsListener> act = listener ->
-      listener.onNotificationChannelChanged(chatId);
-    runUpdate(settingsListeners.iterator(), act);
-    runUpdate(chatSettingsListeners.iterator(chatId), act);
+    notifyChannelChanged(settingsListeners.iterator(), chatId);
+    notifyChannelChanged(chatSettingsListeners.iterator(chatId), chatId);
   }
 
   @AnyThread
@@ -1688,13 +1727,6 @@ public class TdlibListeners {
   public void updateReadDatePrivacySettings (TdApi.ReadDatePrivacySettings settings) {
     for (PrivacySettingsListener listener : privacySettingsListeners) {
       listener.onReadDatePrivacySettingsChanged(settings);
-    }
-  }
-
-  @AnyThread
-  public void updateNewChatPrivacySettings (TdApi.NewChatPrivacySettings settings) {
-    for (PrivacySettingsListener listener : privacySettingsListeners) {
-      listener.onNewChatPrivacySettingsChanged(settings);
     }
   }
 
@@ -1880,18 +1912,6 @@ public class TdlibListeners {
   void updateSuggestedActions (TdApi.UpdateSuggestedActions update) {
     for (TdlibOptionListener listener : optionListeners) {
       listener.onSuggestedActionsChanged(update.addedActions, update.removedActions);
-    }
-  }
-
-  void updateChatRevenueAmount (TdApi.UpdateChatRevenueAmount update) {
-    for (TdlibOptionListener listener : optionListeners) {
-      listener.onChatRevenueUpdated(update.chatId, update.revenueAmount);
-    }
-  }
-
-  void updateStarRevenueStatus (TdApi.UpdateStarRevenueStatus update) {
-    for (TdlibOptionListener listener : optionListeners) {
-      listener.onStarRevenueStatusUpdated(update.ownerId, update.status);
     }
   }
 

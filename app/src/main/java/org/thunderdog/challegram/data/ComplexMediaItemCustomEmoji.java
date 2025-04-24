@@ -16,6 +16,7 @@
 package org.thunderdog.challegram.data;
 
 import android.graphics.Canvas;
+import android.graphics.Path;
 import android.graphics.Rect;
 
 import org.drinkless.tdlib.TdApi;
@@ -28,25 +29,21 @@ import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.tool.Views;
 
-import tgx.td.Td;
-import tgx.td.data.StickerOutline;
+import me.vkryl.td.Td;
 
 public class ComplexMediaItemCustomEmoji implements ComplexMediaItem {
-  private final Tdlib tdlib;
   public final TdApi.Sticker sticker;
   public final int size;
-  public final StickerOutline outline;
+  public final Path outline;
   public final ImageFile miniThumbnail, thumbnail;
   public final ImageFile imageFile;
   public final GifFile gifFile;
 
   public ComplexMediaItemCustomEmoji (Tdlib tdlib, TdApi.Sticker sticker, int size) {
-    this.tdlib = tdlib;
     this.sticker = sticker;
     this.size = size;
 
-    this.outline = new StickerOutline(sticker, true);
-    this.outline.setDisplaySize(size);
+    this.outline = Td.buildOutline(sticker, size);
 
     this.miniThumbnail = null; // keeping in case it will appear in sticker object
 
@@ -103,9 +100,6 @@ public class ComplexMediaItemCustomEmoji implements ComplexMediaItem {
     } else if (gifFile != null) {
       receiver.getGifReceiver(displayMediaKey).requestFile(gifFile);
     }
-    if (outline != null && preview.needPlaceholder()) {
-      outline.requestOutline(tdlib, receiver);
-    }
   }
 
   @Override
@@ -154,7 +148,7 @@ public class ComplexMediaItemCustomEmoji implements ComplexMediaItem {
         preview.setBounds(rect.left, rect.top, rect.right, rect.bottom);
       }
       if (preview.needPlaceholder()) {
-        preview.drawPlaceholderOutline(c, outline);
+        preview.drawPlaceholderContour(c, outline);
       }
     }
     if (needThemedColorFilter) {

@@ -45,15 +45,14 @@ import org.thunderdog.challegram.tool.PorterDuffPaint;
 import org.thunderdog.challegram.tool.Screen;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.tool.Views;
-import org.thunderdog.challegram.unsorted.Settings;
 
 import me.vkryl.android.ViewUtils;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.Destroyable;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
-public class StickerSmallView extends View implements FactorAnimator.Target, StickerPreviewView.PreviewCallback, Destroyable {
+public class StickerSmallView extends View implements FactorAnimator.Target, Destroyable {
   public static final float PADDING = 8f;
   private static final Interpolator OVERSHOOT_INTERPOLATOR = new OvershootInterpolator(3.2f);
 
@@ -213,7 +212,6 @@ public class StickerSmallView extends View implements FactorAnimator.Target, Sti
     }
   }
 
-  @Override
   public @PorterDuffColorId int getThemedColorId () {
     return themedColorId;
   }
@@ -354,12 +352,7 @@ public class StickerSmallView extends View implements FactorAnimator.Target, Sti
         closePreview(e);
         if (clicked && callback != null && sticker != null) {
           ViewUtils.onClick(this);
-          boolean updateOrder = false;
-          if (!sticker.isCustomEmoji()) {
-            long flag = /*sticker.isCustomEmoji() ? Settings.SETTING_FLAG_DYNAMIC_ORDER_EMOJI_PACKS :*/ Settings.SETTING_FLAG_DYNAMIC_ORDER_STICKER_PACKS;
-            updateOrder = Settings.instance().getNewSetting(flag) && !sticker.isRecent() && !sticker.isFavorite();
-          }
-          callback.onStickerClick(this, this, sticker, false, Td.newSendOptions(false, false, false, updateOrder));
+          callback.onStickerClick(this, this, sticker, false, Td.newSendOptions());
         }
         return true;
       }
@@ -578,7 +571,6 @@ public class StickerSmallView extends View implements FactorAnimator.Target, Sti
     return sticker;
   }
 
-  @Override
   public void closePreviewIfNeeded () {
     if (ignoreNextStickerChanges) {
       ignoreNextStickerChanges = false;
@@ -602,7 +594,6 @@ public class StickerSmallView extends View implements FactorAnimator.Target, Sti
 
   private StickerPreviewView.MenuStickerPreviewCallback menuStickerPreviewCallback;
 
-  @Override
   public StickerPreviewView.MenuStickerPreviewCallback getMenuStickerPreviewCallback () {
     return menuStickerPreviewCallback;
   }

@@ -41,7 +41,7 @@ import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.android.util.ViewProvider;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class BubbleView2 {
   private final Tdlib tdlib;

@@ -73,7 +73,6 @@ import org.thunderdog.challegram.util.FloatListener;
 import org.thunderdog.challegram.util.HeightChangeListener;
 import org.thunderdog.challegram.util.SelectableItemDelegate;
 import org.thunderdog.challegram.v.CustomRecyclerView;
-import org.thunderdog.challegram.v.EditText;
 import org.thunderdog.challegram.widget.AvatarView;
 import org.thunderdog.challegram.widget.BetterChatView;
 import org.thunderdog.challegram.widget.ChartLayout;
@@ -141,7 +140,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
   private @Nullable SliderWrapView.RealTimeChangeListener sliderChangeListener;
 
   public interface TextChangeListener {
-    void onTextChanged (int id, ListItem item, MaterialEditTextGroup v);
+    void onTextChanged (int id, ListItem item, MaterialEditTextGroup v, String text);
   }
 
   public SettingsAdapter (ViewController<?> context) {
@@ -277,7 +276,8 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
   }
 
   @Override
-  public void onTextChanged (MaterialEditTextGroup v, CharSequence cs) {
+  public void onTextChanged (MaterialEditTextGroup v, CharSequence charSequence) {
+    String text = charSequence.toString();
     int id = ((ViewGroup) v.getParent()).getId();
     //
     ListItem item = v.getParent() != null && ((ViewGroup) v.getParent()).getTag() instanceof ListItem ? (ListItem) ((ViewGroup) v.getParent()).getTag() : null;
@@ -289,15 +289,14 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
     }
     boolean changed = true;
     if (item != null) {
-      CharSequence value = EditText.nonModifiableCopy(cs);
-      if (!StringUtils.equalsOrBothEmpty(item.getCharSequenceValue(), value)) {
-        item.setStringValue(value);
+      if (!StringUtils.equalsOrBothEmpty(item.getStringValue(), text)) {
+        item.setStringValue(text);
       } else {
         changed = false;
       }
     }
     if (changed && textChangeListener != null) {
-      textChangeListener.onTextChanged(id, item, v);
+      textChangeListener.onTextChanged(id, item, v, text);
     }
   }
 
@@ -597,7 +596,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
     }
   }
 
-  public void updateLockEditTextById (int id, @Nullable CharSequence text) {
+  public void updateLockEditTextById (int id, @Nullable String text) {
     int index = indexOfViewById(id);
     if (index != -1) {
       for (RecyclerView parentView : parentViews) {
@@ -764,7 +763,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
             }
             if (!ok) {
               SettingHolder holder = (SettingHolder) parentView.getChildViewHolder(view);
-              int actualPosition = holder != null ? holder.getBindingAdapterPosition() : -1;
+              int actualPosition = holder != null ? holder.getAdapterPosition() : -1;
               if (actualPosition != RecyclerView.NO_POSITION) {
                 onBindViewHolder(holder, actualPosition);
               } else {

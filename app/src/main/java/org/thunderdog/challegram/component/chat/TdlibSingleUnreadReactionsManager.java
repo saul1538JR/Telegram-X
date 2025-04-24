@@ -30,7 +30,7 @@ import java.util.Iterator;
 
 import me.vkryl.core.lambda.Destroyable;
 import me.vkryl.core.reference.ReferenceLongMap;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TdlibSingleUnreadReactionsManager implements ChatListener, MessageListener, Destroyable {
   private final Tdlib tdlib;

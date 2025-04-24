@@ -26,7 +26,7 @@ import org.thunderdog.challegram.loader.gif.GifFile;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.tool.Screen;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TGStickerObj {
   private Tdlib tdlib;
@@ -82,10 +82,6 @@ public class TGStickerObj {
 
   public boolean isEmojiReaction () {
     return reactionType != null && reactionType.getConstructor() == TdApi.ReactionTypeEmoji.CONSTRUCTOR;
-  }
-
-  public boolean isPaidReaction () {
-    return reactionType != null && reactionType.getConstructor() == TdApi.ReactionTypePaid.CONSTRUCTOR;
   }
 
   public boolean isCustomEmoji () {
@@ -206,7 +202,7 @@ public class TGStickerObj {
   }
 
   public Path getContour (int targetWidth, int targetHeight) {
-    return null;
+    return sticker != null ? Td.buildOutline(sticker, targetWidth, targetHeight) : null;
   }
 
   public ImageFile getImage () {

@@ -43,7 +43,6 @@ import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.android.util.MultipleViewProvider;
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.ColorUtils;
-import me.vkryl.core.lambda.RunnableData;
 import me.vkryl.core.reference.ReferenceUtils;
 
 public class MosaicWrapper implements FactorAnimator.Target, ComplexReceiver.KeyFilter {
@@ -1194,23 +1193,15 @@ public class MosaicWrapper implements FactorAnimator.Target, ComplexReceiver.Key
   private TdApi.ChatType autoDownloadChatType;
 
   public void autoDownloadContent (TdApi.ChatType chatType) {
-    boolean force = parent != null && parent.isSponsoredMessage();
     this.autoDownloadChatType = chatType;
-    RunnableData<MosaicItemInfo> act = item -> {
-      if (force && item.target.isPhoto()) {
-        item.target.getFileProgress().downloadIfNeeded();
-      } else {
-        item.target.getFileProgress().downloadAutomatically(chatType);
-      }
-    };
     if (mosaicItems != null) {
       for (MosaicItemInfo item : mosaicItems) {
-        act.runWithData(item);
+        item.target.getFileProgress().downloadAutomatically(chatType);
       }
     }
     if (addedMosaicItems != null) {
       for (MosaicItemInfo item : addedMosaicItems) {
-        act.runWithData(item);
+        item.target.getFileProgress().downloadAutomatically(chatType);
       }
     }
   }

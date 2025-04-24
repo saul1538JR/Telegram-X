@@ -25,7 +25,7 @@ import org.thunderdog.challegram.loader.ComplexReceiverProvider;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.tool.Screen;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class ProfilePhotoDrawModifier implements DrawModifier {
   @Override

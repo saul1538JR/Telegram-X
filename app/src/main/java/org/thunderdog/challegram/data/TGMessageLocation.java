@@ -66,7 +66,7 @@ import me.vkryl.android.ViewUtils;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TGMessageLocation extends TGMessage implements LiveLocationManager.UserLocationChangeListener {
   private final TdApi.Location point;
@@ -439,12 +439,12 @@ public class TGMessageLocation extends TGMessage implements LiveLocationManager.
   }*/
 
   public boolean canStopAlive () {
-    return lastMessageProperties().canBeEdited && livePeriod > 0 && checkAlive(true);
+    return msg.canBeEdited && livePeriod > 0 && checkAlive(true);
   }
 
   public void stopLiveLocation () {
     if (canStopAlive()) {
-      tdlib.client().send(new TdApi.EditMessageLiveLocation(msg.chatId, msg.id, msg.replyMarkup, null, 0, 0, 0), tdlib.silentHandler());
+      tdlib.client().send(new TdApi.EditMessageLiveLocation(msg.chatId, msg.id, msg.replyMarkup, null, 0, 0), tdlib.silentHandler());
     }
   }
 

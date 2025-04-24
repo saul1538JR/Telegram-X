@@ -31,7 +31,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public final class TdlibAccentColor {
 

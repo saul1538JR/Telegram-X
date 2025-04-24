@@ -32,7 +32,7 @@ import org.thunderdog.challegram.unsorted.Settings;
 import java.util.HashMap;
 import java.util.Map;
 
-import tgx.td.JSON;
+import me.vkryl.td.JSON;
 
 public final class FirebaseListenerService extends FirebaseMessagingService {
   @Override

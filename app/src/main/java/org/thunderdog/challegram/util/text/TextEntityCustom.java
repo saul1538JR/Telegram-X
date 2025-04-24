@@ -103,10 +103,6 @@ public class TextEntityCustom extends TextEntity {
     return this;
   }
 
-  public String getLinkIfUrl () {
-    return linkType == LINK_TYPE_URL ? link : null;
-  }
-
   @Override
   public TextEntity setOnClickListener (ClickableSpan span) {
     this.onClickListener = span;
@@ -209,11 +205,6 @@ public class TextEntityCustom extends TextEntity {
   }
 
   @Override
-  public boolean forceDisableAnimations () {
-    return false;
-  }
-
-  @Override
   public boolean hasMedia () {
     return isIcon();
   }
@@ -268,11 +259,6 @@ public class TextEntityCustom extends TextEntity {
   }
 
   @Override
-  public TdApi.TextEntity getQuote () {
-    return null;
-  }
-
-  @Override
   public boolean isEssential () {
     return true;
   }
@@ -309,16 +295,6 @@ public class TextEntityCustom extends TextEntity {
 
   @Override
   public boolean isFullWidth () {
-    return false;
-  }
-
-  @Override
-  public int getQuoteId () {
-    return -1;
-  }
-
-  @Override
-  public boolean isQuote () {
     return false;
   }
 

@@ -21,7 +21,7 @@ import org.thunderdog.challegram.data.MediaWrapper;
 import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.unsorted.Settings;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TdlibNotificationMediaFile {
   public static final int TYPE_IMAGE = 0;

@@ -18,7 +18,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.view.TextureView;
@@ -66,8 +65,14 @@ import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.CancellableRunnable;
 
 public class VideoPlayerView implements Player.Listener, CallManager.CurrentCallListener, Runnable {
+  private static class SeekHandler extends Handler {
+    @Override
+    public void handleMessage (Message msg) {
+      ((VideoPlayerView) msg.obj).updateTimes();
+    }
+  }
   private final Context context;
-  private final Handler seekHandler;
+  private final SeekHandler seekHandler;
   // private final TrackSelector selector;
   // private final LoadControl loadControl;
   private @Nullable ExoPlayer player;
@@ -87,10 +92,7 @@ public class VideoPlayerView implements Player.Listener, CallManager.CurrentCall
     this.context = context;
     this.parentView = parentView;
     this.addIndex = addIndex;
-    this.seekHandler = new Handler(Looper.getMainLooper(), msg -> {
-      updateTimes();
-      return false;
-    });
+    this.seekHandler = new SeekHandler();
     this.enableCropping = !APPLY_CROP_EFFECTS && enableCropping;
   }
 

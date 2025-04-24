@@ -41,8 +41,8 @@ import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.reference.ReferenceMap;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class TdlibStatusManager implements CleanupStartupDelegate {
   public static final int CHANGE_FLAG_TEXT = 1; // update text
@@ -627,11 +627,11 @@ public class TdlibStatusManager implements CleanupStartupDelegate {
     throw new IllegalArgumentException(chat.type.toString());
   }
 
-  public CharSequence getPrivateChatSubtitle (long userId) {
+  public String getPrivateChatSubtitle (long userId) {
     return getPrivateChatSubtitle(userId, tdlib.cache().user(userId), true, true);
   }
 
-  public CharSequence getPrivateChatSubtitle (long userId, @Nullable TdApi.User user, boolean allowMyself) {
+  public String getPrivateChatSubtitle (long userId, @Nullable TdApi.User user, boolean allowMyself) {
     return getPrivateChatSubtitle(userId, user, allowMyself, true);
   }
 
@@ -642,11 +642,7 @@ public class TdlibStatusManager implements CleanupStartupDelegate {
     return user != null && user.type.getConstructor() == TdApi.UserTypeRegular.CONSTRUCTOR && user.status.getConstructor() == TdApi.UserStatusOnline.CONSTRUCTOR;
   }
 
-  public CharSequence getPrivateChatSubtitle (long userId, @Nullable TdApi.User user, boolean allowMyself, boolean allowDuration) {
-    return getPrivateChatSubtitle(userId, user, allowMyself, allowDuration, false);
-  }
-
-  public CharSequence getPrivateChatSubtitle (long userId, @Nullable TdApi.User user, boolean allowMyself, boolean allowDuration, boolean fallbackToContactStatus) {
+  public String getPrivateChatSubtitle (long userId, @Nullable TdApi.User user, boolean allowMyself, boolean allowDuration) {
     if (allowMyself && tdlib.isSelfUserId(userId)) {
       return Lang.lowercase(Lang.getString(R.string.ChatWithYourself));
     }
@@ -665,10 +661,6 @@ public class TdlibStatusManager implements CleanupStartupDelegate {
     }
     switch (user.type.getConstructor()) {
       case TdApi.UserTypeBot.CONSTRUCTOR: {
-        TdApi.UserTypeBot bot = (TdApi.UserTypeBot) user.type;
-        if (bot.activeUserCount > 0) {
-          return Lang.pluralBold(R.string.xBotUsers, bot.activeUserCount);
-        }
         return Lang.getString(R.string.Bot);
       }
       case TdApi.UserTypeDeleted.CONSTRUCTOR: {
@@ -676,20 +668,6 @@ public class TdlibStatusManager implements CleanupStartupDelegate {
       }
       case TdApi.UserTypeUnknown.CONSTRUCTOR: {
         return Lang.getString(R.string.unknownUser);
-      }
-      case TdApi.UserTypeRegular.CONSTRUCTOR: {
-        if (fallbackToContactStatus) {
-          return Lang.getString(
-            user.isMutualContact ? R.string.ChatTypeMutualContact :
-            user.isContact ? R.string.ChatTypeContact :
-            R.string.ChatTypeNonContact
-          );
-        }
-        break;
-      }
-      default: {
-        Td.assertUserType_233bc6f4();
-        throw Td.unsupported(user.type);
       }
     }
     return Lang.getUserStatus(tdlib, user.status, allowDuration);

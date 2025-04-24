@@ -44,7 +44,7 @@ import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.Filter;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class VoIP {
   public static class Version implements Comparable<Version> {

@@ -69,8 +69,8 @@ import me.vkryl.android.util.MultipleViewProvider;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.reference.ReferenceList;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class MediaItem implements MessageSourceProvider, InvalidateContentProvider {
   public static final int TYPE_PHOTO = 0;
@@ -111,7 +111,7 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
   private ImageFile targetImage;
   private GifFile targetGif;
 
-  private boolean showCaptionAboveMedia, hasSpoiler;
+  private boolean hasSpoiler;
 
   public static MediaItem copyOf (MediaItem item) {
     return copyOf(item, true);
@@ -128,17 +128,17 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
         copy.sourceDate = item.sourceDate;
         copy.caption = item.caption;
         copy.msg = item.msg;
-        copy.copyOptions(item);
+        copy.setHasSpoiler(item.hasSpoiler);
         return copy;
       }
       case TYPE_GIF: {
         MediaItem copy = new MediaItem(item.context, item.tdlib, item.sourceChatId, item.sourceMessageId, item.sourceSender, item.sourceDate, item.sourceAnimation, item.caption).setMessage(item.msg);
-        copy.copyOptions(item);
+        copy.setHasSpoiler(item.hasSpoiler);
         return copy;
       }
       case TYPE_VIDEO: {
         MediaItem copy = new MediaItem(item.context, item.tdlib, item.sourceChatId, item.sourceMessageId, item.sourceSender, item.sourceDate, item.sourceVideo, item.caption, allowIcon).setMessage(item.msg);
-        copy.copyOptions(item);
+        copy.setHasSpoiler(item.hasSpoiler);
         return copy;
       }
       case TYPE_USER_PROFILE: {
@@ -350,7 +350,6 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
     this.sourceSender = sourceSender;
     this.sourceDate = sourceDate;
     this.caption = photo.caption;
-    setShowCaptionAboveMedia(photo.showCaptionAboveMedia);
     setHasSpoiler(photo.hasSpoiler);
   }
 
@@ -363,7 +362,6 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
 
   private MediaItem (BaseActivity context, Tdlib tdlib, long sourceChatId, long sourceMessageId, TdApi.MessageSender sourceSender, int sourceDate, TdApi.MessageAnimation animation) {
     this(context, tdlib, sourceChatId, sourceMessageId, sourceSender, sourceDate, animation.animation, animation.caption);
-    setShowCaptionAboveMedia(animation.showCaptionAboveMedia);
     setHasSpoiler(animation.hasSpoiler);
   }
 
@@ -553,7 +551,6 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
 
   private MediaItem (BaseActivity context, Tdlib tdlib, long sourceChatId, long sourceMessageId, TdApi.MessageSender sourceSender, int sourceDate, TdApi.MessageVideo video, boolean allowIcon) {
     this(context, tdlib, sourceChatId, sourceMessageId, sourceSender, sourceDate, video.video, video.caption, allowIcon);
-    setShowCaptionAboveMedia(video.showCaptionAboveMedia);
     setHasSpoiler(video.hasSpoiler);
   }
 
@@ -943,8 +940,7 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
             }
           }
           default: {
-            Td.assertChatEventAction_b387a44d();
-            break;
+            Td.assertChatEventAction_c4c039bc();
           }
         }
         break;
@@ -972,20 +968,16 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
         return new MediaItem(context, tdlib, msg.chatId, msg.id, msg.senderId, msg.date, (TdApi.MessageVideoNote) msg.content).setMessage(msg);
       }
       case TdApi.MessageText.CONSTRUCTOR: {
-        TdApi.LinkPreview linkPreview = ((TdApi.MessageText) msg.content).linkPreview;
-        if (linkPreview != null) {
-          if (Td.getSticker(linkPreview.type) != null) {
-            TdApi.Sticker sticker = Td.getSticker(linkPreview.type);
-            return new MediaItem(context, tdlib, msg.chatId, msg.id, TD.convertToPhoto(sticker), true, false).setSourceMessage(msg);
-          } else if (Td.getVideo(linkPreview.type) != null) {
-            return new MediaItem(context, tdlib, Td.getVideo(linkPreview.type), new TdApi.FormattedText("", null), true).setSourceMessage(msg);
-          } else if (Td.getAnimation(linkPreview.type) != null) {
-            return new MediaItem(context, tdlib, Td.getAnimation(linkPreview.type), null).setSourceMessage(msg);
-          } else {
-            TdApi.Photo photo = Td.getPhoto(linkPreview.type);
-            if (photo != null) {
-              return new MediaItem(context, tdlib, msg.chatId, msg.id, photo).setSourceMessage(msg);
-            }
+        TdApi.WebPage webPage = ((TdApi.MessageText) msg.content).webPage;
+        if (webPage != null) {
+          if (webPage.sticker != null) {
+            return new MediaItem(context, tdlib, msg.chatId, msg.id, TD.convertToPhoto(webPage.sticker), true, false).setSourceMessage(msg);
+          } else if (webPage.video != null) {
+            return new MediaItem(context, tdlib, webPage.video, new TdApi.FormattedText("", null), true).setSourceMessage(msg);
+          } else if (webPage.animation != null) {
+            return new MediaItem(context, tdlib, webPage.animation, null).setSourceMessage(msg);
+          } else if (webPage.photo != null) {
+            return new MediaItem(context, tdlib, msg.chatId, msg.id, webPage.photo).setSourceMessage(msg);
           }
         }
         break;
@@ -1667,14 +1659,9 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
     return false;
   }
 
-  private TdApi.MessageProperties lastProperties;
-
   public boolean canBeShared () {
-    if (msg != null) {
-      TdApi.MessageProperties properties = lastProperties != null ? lastProperties : tdlib.getMessagePropertiesSync(msg);
-      lastProperties = properties;
-      return properties.canBeForwarded;
-    }
+    if (msg != null)
+      return msg.canBeForwarded;
     return getShareFile() != null;
   }
 
@@ -1710,11 +1697,7 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
     return null;
   }
 
-  public TdApi.InputMessageContent createShareContent () {
-    return createShareContent(null, false);
-  }
-
-  public TdApi.InputMessageContent createShareContent (TdApi.FormattedText caption, boolean showCaptionAboveMedia) {
+  public TdApi.InputMessageContent createShareContent (TdApi.FormattedText caption) {
     TdApi.InputFile file;
     if (type == TYPE_CHAT_PROFILE || type == TYPE_USER_PROFILE || (sourceChatId != 0 && ChatId.isSecret(sourceChatId))) {
       file = TD.createFileCopy(targetFile);
@@ -1729,17 +1712,17 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
         if (isAnimatedAvatar()) {
           TdApi.AnimatedChatPhoto targetFile = chatPhoto.animation != null ? chatPhoto.animation : chatPhoto.smallAnimation;
           if (targetFile != null) {
-            return new TdApi.InputMessageAnimation(file, null, null, 3, targetFile.length, targetFile.length, caption, showCaptionAboveMedia, false);
+            return new TdApi.InputMessageAnimation(file, null, null, 3, targetFile.length, targetFile.length, null, false);
           }
         }
-        return new TdApi.InputMessagePhoto(file, null, null, 640, 640, caption, showCaptionAboveMedia, null, false);
+        return new TdApi.InputMessagePhoto(file, null, null, 640, 640, caption, null, false);
       case TYPE_PHOTO:
       case TYPE_GALLERY_PHOTO:
-        return new TdApi.InputMessagePhoto(file, null, null, width, height, caption, showCaptionAboveMedia, null, type == TYPE_GALLERY_PHOTO && hasSpoiler);
+        return new TdApi.InputMessagePhoto(file, null, null, width, height, caption, null, type == TYPE_GALLERY_PHOTO && hasSpoiler);
       case TYPE_VIDEO:
-        return new TdApi.InputMessageVideo(file, null, null, 0, null, sourceVideo.duration, sourceVideo.width, sourceVideo.height, sourceVideo.supportsStreaming, caption, showCaptionAboveMedia, null, false);
+        return new TdApi.InputMessageVideo(file, null, null, sourceVideo.duration, sourceVideo.width, sourceVideo.height, sourceVideo.supportsStreaming, caption, null, false);
       case TYPE_GIF:
-        return new TdApi.InputMessageAnimation(file, null, null, sourceAnimation.duration, sourceAnimation.width, sourceAnimation.height, caption, showCaptionAboveMedia, false);
+        return new TdApi.InputMessageAnimation(file, null, null, sourceAnimation.duration, sourceAnimation.width, sourceAnimation.height, caption, false);
     }
     return null;
   }
@@ -1843,18 +1826,5 @@ public class MediaItem implements MessageSourceProvider, InvalidateContentProvid
 
   public boolean hasSpoiler () {
     return hasSpoiler;
-  }
-
-  public void setShowCaptionAboveMedia (boolean showCaptionAboveMedia) {
-    this.showCaptionAboveMedia = showCaptionAboveMedia;
-  }
-
-  public boolean showCaptionAboveMedia () {
-    return showCaptionAboveMedia;
-  }
-
-  private void copyOptions (MediaItem from) {
-    setShowCaptionAboveMedia(from.showCaptionAboveMedia);
-    setHasSpoiler(from.hasSpoiler);
   }
 }

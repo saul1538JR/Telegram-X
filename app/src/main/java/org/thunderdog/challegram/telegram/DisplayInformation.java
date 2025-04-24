@@ -33,7 +33,7 @@ import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.util.Blob;
 import me.vkryl.leveldb.LevelDB;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class DisplayInformation {
   private static final long FLAG_PREMIUM = 1;
@@ -44,8 +44,7 @@ public class DisplayInformation {
     if (user.isPremium) {
       flags |= FLAG_PREMIUM;
     }
-    TdApi.VerificationStatus verificationStatus = user.verificationStatus;
-    if (verificationStatus != null && verificationStatus.isVerified) {
+    if (user.isVerified) {
       flags |= FLAG_VERIFIED;
     }
     return flags;
@@ -480,7 +479,7 @@ public class DisplayInformation {
 
     public static EmojiStatusCache restore (String prefix, @NonNull TdApi.User user, @Nullable TdApi.Sticker remoteEmojiStatus, boolean isUpdate) {
       TdApi.EmojiStatus emojiStatus = user.emojiStatus;
-      long remoteEmojiStatusId = remoteEmojiStatus != null ? remoteEmojiStatus.id : Td.customEmojiId(emojiStatus);
+      long remoteEmojiStatusId = remoteEmojiStatus != null ? remoteEmojiStatus.id : emojiStatus != null ? emojiStatus.customEmojiId : 0;
       if (remoteEmojiStatusId == 0) {
         // Drop emoji status cache, as user doesn't have custom status anymore
         return null;
@@ -517,6 +516,7 @@ public class DisplayInformation {
         loadedSticker.emoji,
         loadedSticker.format,
         loadedSticker.fullType,
+        loadedSticker.outline,
         loadedSticker.thumbnail != null && TD.isFileLoaded(loadedSticker.thumbnail.file) ? loadedSticker.thumbnail : null,
         TD.isFileLoaded(loadedSticker.sticker) ? loadedSticker.sticker : null
       );
@@ -870,6 +870,7 @@ public class DisplayInformation {
         // Custom emoji mismatch
         return null;
       }
+      TdApi.ClosedVectorPath[] outline = deserializeOutline(blob);
       return new TdApi.Sticker(
         id,
         setId,
@@ -877,6 +878,7 @@ public class DisplayInformation {
         emoji,
         format,
         fullType,
+        outline,
         // stored separately
         null,
         null
@@ -912,7 +914,8 @@ public class DisplayInformation {
           4 /*width*/ + 4 /*height*/ +
           Blob.sizeOf(sticker.emoji, true) +
           sizeOfFormat(sticker.format) /*format*/ +
-          sizeOfFullType(sticker.fullType) /*fullType*/
+          sizeOfFullType(sticker.fullType) /*fullType*/ +
+          sizeOfOutline(sticker.outline) /*outline*/
       );
       metadata.writeByte((byte) CACHE_VERSION);
       metadata.writeLong(sticker.id);
@@ -922,6 +925,7 @@ public class DisplayInformation {
       metadata.writeString(sticker.emoji);
       writeFormat(metadata, sticker.format);
       writeFullType(metadata, sticker.fullType);
+      writeOutline(metadata, sticker.outline);
       return metadata.toByteArray();
     }
 

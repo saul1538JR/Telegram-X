@@ -38,8 +38,8 @@ import java.util.concurrent.TimeUnit;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.leveldb.LevelDB;
-import tgx.td.JSON;
-import tgx.td.Td;
+import me.vkryl.td.JSON;
+import me.vkryl.td.Td;
 
 public class Crash {
   @Retention(RetentionPolicy.SOURCE)

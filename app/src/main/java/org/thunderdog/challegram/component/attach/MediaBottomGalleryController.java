@@ -73,8 +73,8 @@ import java.util.List;
 import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.lambda.CancellableRunnable;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class MediaBottomGalleryController extends MediaBottomBaseController<MediaBottomGalleryController.Arguments> implements Media.GalleryCallback, MediaGalleryAdapter.Callback, Menu, View.OnClickListener, MediaBottomGalleryBucketAdapter.Callback, MediaViewDelegate, MediaSelectDelegate, MediaSendDelegate {
   public static class Arguments {
@@ -245,11 +245,6 @@ public class MediaBottomGalleryController extends MediaBottomBaseController<Medi
 
   @Override
   public boolean allowSpoiler () {
-    return !ChatId.isSecret(getOutputChatId());
-  }
-
-  @Override
-  public boolean allowShowCaptionAboveMedia () {
     return !ChatId.isSecret(getOutputChatId());
   }
 
@@ -546,7 +541,7 @@ public class MediaBottomGalleryController extends MediaBottomBaseController<Medi
   }
 
   @Override
-  public boolean sendSelectedItems (View view, ArrayList<ImageFile> images, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean showCaptionAboveMedia, boolean hasSpoiler) {
+  public boolean sendSelectedItems (View view, ArrayList<ImageFile> images, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean hasSpoiler) {
     // TODO delete other
     return mediaLayout.sendPhotosOrVideos(view, images, false, options, disableMarkdown, asFiles, true);
   }
@@ -564,16 +559,6 @@ public class MediaBottomGalleryController extends MediaBottomBaseController<Medi
   @Override
   public void onHideMediaStateChanged (boolean hideMedia) {
     mediaLayout.setNeedSpoiler(hideMedia);
-  }
-
-  @Override
-  public boolean showCaptionAboveMedia () {
-    return mediaLayout.showCaptionAboveMedia();
-  }
-
-  @Override
-  public void onShowCaptionAboveMediaStateChanged (boolean showCaptionAboveMedia) {
-    mediaLayout.setShowCaptionAboveMedia(showCaptionAboveMedia);
   }
 
   @Override

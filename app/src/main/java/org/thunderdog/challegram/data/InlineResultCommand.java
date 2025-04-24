@@ -30,7 +30,7 @@ import org.thunderdog.challegram.theme.Theme;
 import org.thunderdog.challegram.tool.Paints;
 import org.thunderdog.challegram.tool.Screen;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class InlineResultCommand extends InlineResult<TdApi.BotCommand> {
   private final UserContext userContext;

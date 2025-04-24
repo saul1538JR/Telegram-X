@@ -31,8 +31,8 @@ import java.util.Set;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.collection.LongList;
 import me.vkryl.core.util.FilteredIterator;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class TdlibNotificationGroup implements Iterable<TdlibNotification> {
   private static final int FLAG_HIDDEN_GLOBALLY = 1;

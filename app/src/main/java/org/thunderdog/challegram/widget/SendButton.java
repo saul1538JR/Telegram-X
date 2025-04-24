@@ -60,8 +60,8 @@ import me.vkryl.core.MathUtils;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.Destroyable;
 import me.vkryl.core.lambda.RunnableInt;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class SendButton extends View implements FactorAnimator.Target, TooltipOverlayView.LocationProvider {
 

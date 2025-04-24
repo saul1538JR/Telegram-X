@@ -112,7 +112,6 @@ import org.thunderdog.challegram.loader.ImageLoader;
 import org.thunderdog.challegram.loader.ImageReader;
 import org.thunderdog.challegram.loader.ImageStrictCache;
 import org.thunderdog.challegram.mediaview.data.MediaItem;
-import org.thunderdog.challegram.telegram.RandomAccessDataSource;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibDataSource;
 import org.thunderdog.challegram.telegram.TdlibDelegate;
@@ -121,13 +120,13 @@ import org.thunderdog.challegram.telegram.TdlibNotificationManager;
 import org.thunderdog.challegram.tool.Fonts;
 import org.thunderdog.challegram.tool.Intents;
 import org.thunderdog.challegram.tool.Screen;
+import org.thunderdog.challegram.tool.Strings;
 import org.thunderdog.challegram.tool.TGMimeType;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.ui.TextController;
 import org.thunderdog.challegram.util.AppBuildInfo;
 import org.thunderdog.challegram.util.Permissions;
 import org.thunderdog.challegram.util.text.TextReplacementSpan;
-import org.thunderdog.challegram.util.text.bidi.BiDiUtils;
 import org.thunderdog.challegram.widget.NoScrollTextView;
 
 import java.io.BufferedReader;
@@ -179,12 +178,12 @@ import me.vkryl.core.collection.LongList;
 import me.vkryl.core.lambda.RunnableBool;
 import me.vkryl.core.lambda.RunnableData;
 import me.vkryl.core.util.LocalVar;
+import me.vkryl.td.Td;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 import okio.Sink;
 import okio.Source;
-import tgx.td.Td;
 
 @SuppressWarnings ("JniMissingFunction")
 public class U {
@@ -493,12 +492,6 @@ public class U {
         case TdlibNotificationManager.ID_ONGOING_CALL_NOTIFICATION:
         case TdlibNotificationManager.ID_INCOMING_CALL_NOTIFICATION:
           knownType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL;
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (UI.getAppContext().checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-              knownType |= android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
-            }
-          }
-          knownType |= android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
           break;
         case TdlibNotificationManager.ID_PENDING_TASK:
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -761,10 +754,6 @@ public class U {
     } else {
       return new ProgressiveMediaSource.Factory(new TdlibDataSource.Factory()).createMediaSource(newMediaItem(TdlibDataSource.UriFactory.create(accountId, file)));
     }
-  }
-
-  public static MediaSource newMediaSource (RandomAccessFile file) {
-    return new ProgressiveMediaSource.Factory(new RandomAccessDataSource.Factory(file)).createMediaSource(newMediaItem(Uri.EMPTY));
   }
 
   public static MediaSource newMediaSource (int accountId, int fileId) {
@@ -1859,7 +1848,7 @@ public class U {
     return successCount == innerFiles.length && fromDir.delete();
   }
 
-  public static boolean moveFile (File fromFile, File toFile) {
+  private static boolean moveFile (File fromFile, File toFile) {
     if (fromFile.renameTo(toFile)) {
       return true;
     }
@@ -2160,7 +2149,7 @@ public class U {
       return 0;
     }
 
-    if (Config.USE_TEXT_ADVANCE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !BiDiUtils.requiresBidi(in, start, end)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       /*
       getTextRunAdvances(char[] chars, int index, int count,
             int contextIndex, int contextCount, boolean isRtl, float[] advances,
@@ -2289,34 +2278,6 @@ public class U {
     }
   }*/
 
-  public static float measureTextRun (@Nullable CharSequence in, @NonNull Paint p, boolean isRtl) {
-    final int count;
-    if (in == null || (count = in.length()) == 0) {
-      return 0;
-    }
-
-    if (Config.USE_TEXT_ADVANCE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      return p.getRunAdvance(in, 0, count, 0, in.length(), isRtl, count);
-    }
-
-    return measureText(in, p);
-  }
-
-  public static float measureTextRun (@Nullable CharSequence in, int start, int end, @NonNull Paint p, boolean isRtl) {
-    final int count = end - start;
-
-    if (in == null || in.length() == 0 || count <= 0) {
-      return 0;
-    }
-
-    if (Config.USE_TEXT_ADVANCE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      return p.getRunAdvance(in, start, end, 0, in.length(), isRtl, end);
-    }
-
-    return measureText(in, start, end, p);
-  }
-
-  @Deprecated
   public static float measureText (@Nullable CharSequence in, int start, int end, @NonNull Paint p) {
     final int count = end - start;
 
@@ -2327,7 +2288,7 @@ public class U {
     if (p == null)
       throw new IllegalArgumentException();
 
-    if (Config.USE_TEXT_ADVANCE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !BiDiUtils.requiresBidi(in, start, end)) {
+    if (Config.USE_TEXT_ADVANCE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Strings.getTextDirection(in, start, end) != Strings.DIRECTION_RTL) {
       return p.getRunAdvance(in, start, end, 0, in.length(), false, end);
     } else {
       float[] widths = pickWidths(count, true);
@@ -3499,16 +3460,6 @@ public class U {
     } else {
       return -1;
     }
-  }
-
-  public static int getStreamVolume (int stream) {
-    final AudioManager audioManager = (AudioManager) UI.getContext().getSystemService(Context.AUDIO_SERVICE);
-    return audioManager.getStreamVolume(stream);
-  }
-
-  public static void adjustStreamVolume (int stream, int volume, int flags) {
-    final AudioManager audioManager = (AudioManager) UI.getContext().getSystemService(Context.AUDIO_SERVICE);
-    audioManager.adjustStreamVolume(stream, volume, flags);
   }
 
   // ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION opened, but the permission is still not granted. Ignore until the app restarts.

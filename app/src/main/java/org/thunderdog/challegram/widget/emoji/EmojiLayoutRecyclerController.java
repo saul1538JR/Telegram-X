@@ -54,7 +54,7 @@ import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class EmojiLayoutRecyclerController extends ViewController<EmojiLayoutRecyclerController.Callback> implements
   StickerSmallView.StickerMovementCallback,
@@ -901,12 +901,8 @@ public class EmojiLayoutRecyclerController extends ViewController<EmojiLayoutRec
     return ignoreStickersScroll != 0;
   }
 
-  public void beforeStickerChanges () {
+  private void beforeStickerChanges () {
     ignoreStickersScroll++;
-  }
-
-  public void afterStickerChanges () {
-    ignoreStickersScroll--;
   }
 
   private void resetScrollCache () {
@@ -916,11 +912,13 @@ public class EmojiLayoutRecyclerController extends ViewController<EmojiLayoutRec
     if (callbacks != null) {
       callbacks.resetScrollState(true); // FIXME upd: ... fixme what?
     }
-    /*if (emojiLayout != null && contentView.getCurrentSection() == SECTION_STICKERS) {
+    UI.post(() -> {
+      /*if (emojiLayout != null && contentView.getCurrentSection() == SECTION_STICKERS) {
         emojiLayout.setCurrentStickerSectionByPosition(getStickerSetSection(), true, true);
         emojiLayout.resetScrollState(true);
       }*/
-    UI.post(this::afterStickerChanges, 400);
+      ignoreStickersScroll--;
+    }, 400);
   }
 
   public void addStickerSet (TGStickerSetInfo stickerSet, ArrayList<MediaStickersAdapter.StickerItem> items, int index) {

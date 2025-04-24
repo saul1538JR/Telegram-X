@@ -35,8 +35,8 @@ import org.thunderdog.challegram.v.MediaRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import tgx.td.MessageId;
-import tgx.td.Td;
+import me.vkryl.td.MessageId;
+import me.vkryl.td.Td;
 
 public class SharedCommonController extends SharedBaseController<InlineResult<?>> implements View.OnClickListener, TGPlayerController.TrackChangeListener, TGPlayerController.PlayListBuilder {
   public SharedCommonController (Context context, Tdlib tdlib) {
@@ -66,34 +66,42 @@ public class SharedCommonController extends SharedBaseController<InlineResult<?>
     }
   }
 
+  /*@Override
+  public int getIcon () {
+    switch (filter.getConstructor()) {
+      case TdApi.SearchMessagesFilterDocument.CONSTRUCTOR: {
+        return R.drawable.baseline_insert_drive_file_20;
+      }
+      case TdApi.SearchMessagesFilterAudio.CONSTRUCTOR: {
+        return R.drawable.baseline_music_note_20;
+      }
+      case TdApi.SearchMessagesFilterUrl.CONSTRUCTOR: {
+        return R.drawable.baseline_language_20;
+      }
+      case TdApi.SearchMessagesFilterVoiceNote.CONSTRUCTOR: {
+        return R.drawable.baseline_mic_20;
+      }
+    }
+    return 0;
+  }*/
+
   @Override
   public CharSequence getName () {
     switch (filter.getConstructor()) {
-      case TdApi.SearchMessagesFilterDocument.CONSTRUCTOR:
+      case TdApi.SearchMessagesFilterDocument.CONSTRUCTOR: {
         return Lang.getString(R.string.TabDocs);
-      case TdApi.SearchMessagesFilterAudio.CONSTRUCTOR:
+      }
+      case TdApi.SearchMessagesFilterAudio.CONSTRUCTOR: {
         return Lang.getString(R.string.TabAudio);
-      case TdApi.SearchMessagesFilterUrl.CONSTRUCTOR:
+      }
+      case TdApi.SearchMessagesFilterUrl.CONSTRUCTOR: {
         return Lang.getString(R.string.TabLinks);
-      case TdApi.SearchMessagesFilterVoiceNote.CONSTRUCTOR:
+      }
+      case TdApi.SearchMessagesFilterVoiceNote.CONSTRUCTOR: {
         return Lang.getString(R.string.TabVoiceMessages);
+      }
     }
     return "";
-  }
-
-  @Override
-  public int getIcon () {
-    switch (filter.getConstructor()) {
-      case TdApi.SearchMessagesFilterDocument.CONSTRUCTOR:
-        return R.drawable.baseline_insert_drive_file_24;
-      case TdApi.SearchMessagesFilterAudio.CONSTRUCTOR:
-        return R.drawable.baseline_music_note_24;
-      case TdApi.SearchMessagesFilterUrl.CONSTRUCTOR:
-        return R.drawable.baseline_language_24;
-      case TdApi.SearchMessagesFilterVoiceNote.CONSTRUCTOR:
-        return R.drawable.baseline_mic_24;
-    }
-    return 0;
   }
 
   @Override
@@ -298,8 +306,9 @@ public class SharedCommonController extends SharedBaseController<InlineResult<?>
         share.setArguments(new ShareController.Args(c.getMessage()).setAllowCopyLink(true));
         share.show();
       } else if (id == R.id.btn_delete) {
-        TdApi.Message message = c.getMessage();
-        tdlib.ui().showDeleteOptions(alternateParent, message);
+        tdlib.ui().showDeleteOptions(alternateParent, new TdApi.Message[] {c.getMessage()}, () -> {
+          // setInMediaSelectMode(false);
+        });
       }
       return true;
     });

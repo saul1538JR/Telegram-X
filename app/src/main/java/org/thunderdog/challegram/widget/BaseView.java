@@ -50,8 +50,8 @@ import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.ChatId;
-import tgx.td.MessageId;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.MessageId;
 
 public class BaseView extends SparseDrawableView implements ClickHelper.Delegate, View.OnClickListener, TdlibDelegate {
   public interface ActionListProvider {

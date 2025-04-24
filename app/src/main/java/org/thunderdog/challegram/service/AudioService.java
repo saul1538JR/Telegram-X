@@ -63,7 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.vkryl.core.ArrayUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class AudioService extends Service implements TGPlayerController.TrackListChangeListener, TGPlayerController.TrackListener, AudioController.ApicListener, AudioManager.OnAudioFocusChangeListener {
 

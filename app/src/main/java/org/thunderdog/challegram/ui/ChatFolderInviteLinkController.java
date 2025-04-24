@@ -49,7 +49,7 @@ public class ChatFolderInviteLinkController extends BottomSheetViewController<Ch
   public static class Arguments {
     public final @Mode int mode;
     public final int chatFolderId;
-    public final TdApi.ChatFolderName chatFolderName;
+    public final String chatFolderTitle;
     public final long[] selectableChatIds;
     public final @Nullable String inviteLinkUrl;
     public final @Nullable TdApi.ChatFolderInviteLinkInfo inviteLinkInfo;
@@ -57,35 +57,35 @@ public class ChatFolderInviteLinkController extends BottomSheetViewController<Ch
     public Arguments (@NonNull String inviteLink, @NonNull TdApi.ChatFolderInviteLinkInfo inviteLinkInfo) {
       this.mode = MODE_INVITE_LINK;
       this.chatFolderId = inviteLinkInfo.chatFolderInfo.id;
-      this.chatFolderName = inviteLinkInfo.chatFolderInfo.name;
+      this.chatFolderTitle = inviteLinkInfo.chatFolderInfo.title;
       this.selectableChatIds = inviteLinkInfo.missingChatIds;
       this.inviteLinkUrl = ObjectUtils.requireNonNull(inviteLink);
       this.inviteLinkInfo = ObjectUtils.requireNonNull(inviteLinkInfo);
     }
 
-    private Arguments (@Mode int mode, int chatFolderId, TdApi.ChatFolderName chatFolderName, long[] chatIds) {
+    private Arguments (@Mode int mode, int chatFolderId, String chatFolderTitle, long[] chatIds) {
       this.mode = mode;
       this.chatFolderId = chatFolderId;
-      this.chatFolderName = chatFolderName;
+      this.chatFolderTitle = chatFolderTitle;
       this.selectableChatIds = chatIds;
       this.inviteLinkUrl = null;
       this.inviteLinkInfo = null;
     }
 
     public static Arguments newChats (TdApi.ChatFolderInfo chatFolderInfo, long[] chatIds) {
-      return newChats(chatFolderInfo.id, chatFolderInfo.name, chatIds);
+      return newChats(chatFolderInfo.id, chatFolderInfo.title, chatIds);
     }
 
-    public static Arguments newChats (int chatFolderId, TdApi.ChatFolderName chatFolderName, long[] chatIds) {
-      return new Arguments(MODE_NEW_CHATS, chatFolderId, chatFolderName, chatIds);
+    public static Arguments newChats (int chatFolderId, String chatFolderTitle, long[] chatIds) {
+      return new Arguments(MODE_NEW_CHATS, chatFolderId, chatFolderTitle, chatIds);
     }
 
     public static Arguments deleteFolder (TdApi.ChatFolderInfo chatFolderInfo, long[] chatIds) {
-      return deleteFolder(chatFolderInfo.id, chatFolderInfo.name, chatIds);
+      return deleteFolder(chatFolderInfo.id, chatFolderInfo.title, chatIds);
     }
 
-    public static Arguments deleteFolder (int chatFolderId, TdApi.ChatFolderName chatFolderName, long[] chatIds) {
-      return new Arguments(MODE_DELETE_FOLDER, chatFolderId, chatFolderName, chatIds);
+    public static Arguments deleteFolder (int chatFolderId, String chatFolderTitle, long[] chatIds) {
+      return new Arguments(MODE_DELETE_FOLDER, chatFolderId, chatFolderTitle, chatIds);
     }
   }
 
