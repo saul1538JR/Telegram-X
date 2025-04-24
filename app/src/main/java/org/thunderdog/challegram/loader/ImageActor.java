@@ -27,7 +27,7 @@ import org.thunderdog.challegram.player.AudioController;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibManager;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class ImageActor implements ImageReader.Listener, AudioController.ApicListener {
   private ImageFile file;

@@ -30,7 +30,6 @@ import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.tool.Views;
 import org.thunderdog.challegram.util.CharacterStyleFilter;
-import org.thunderdog.challegram.v.EditText;
 import org.thunderdog.challegram.widget.DoneButton;
 import org.thunderdog.challegram.widget.MaterialEditTextGroup;
 
@@ -54,10 +53,10 @@ public class EditTextController<T> extends EditBaseController<T> {
     default String getCurrentValue () {
       return null;
     }
-    default void onValueChanged (EditTextController<?> controller, CharSequence value) {
+    default void onValueChanged (EditTextController<?> controller, String value) {
       controller.setDoneVisible(allowEmptyValue() || !StringUtils.isEmptyOrBlank(value));
     }
-    boolean onDonePressed (EditTextController<?> controller, DoneButton button, CharSequence value);
+    boolean onDonePressed (EditTextController<?> controller, DoneButton button, String value);
     default int getMaxLength () {
       return 0;
     }
@@ -90,7 +89,7 @@ public class EditTextController<T> extends EditBaseController<T> {
   }
 
   private SettingsAdapter adapter;
-  private CharSequence currentValue;
+  private String currentValue;
 
   @Override
   protected void onCreateView (Context context, FrameLayoutFix contentView, RecyclerView recyclerView) {
@@ -133,9 +132,9 @@ public class EditTextController<T> extends EditBaseController<T> {
       items.add(descriptionItem);
     }
 
-    adapter.setTextChangeListener((id, item1, v) -> {
-      currentValue = EditText.nonModifiableCopy(v.getText());
-      delegate.onValueChanged(this, currentValue);
+    adapter.setTextChangeListener((id, item1, v, text) -> {
+      currentValue = text;
+      delegate.onValueChanged(this, text);
     });
     adapter.setLockFocusOn(this, delegate.needFocusInput());
     adapter.setItems(items, false);

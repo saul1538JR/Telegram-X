@@ -52,7 +52,7 @@ import me.vkryl.android.animator.ReplaceAnimator;
 import me.vkryl.android.animator.VariableFloat;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TGMessageText extends TGMessage {
   private TdApi.FormattedText text;
@@ -96,9 +96,9 @@ public class TGMessageText extends TGMessage {
     }
   }, AnimatorUtils.DECELERATE_INTERPOLATOR, TEXT_CROSS_FADE_DURATION_MS);
 
-  private TGWebPage linkPreview;
+  private TGWebPage webPage;
   private TdApi.MessageText currentMessageText, pendingMessageText;
-  private final BoolAnimator linkPreviewAboveText = new BoolAnimator(0,
+  private final BoolAnimator webPageOnTop = new BoolAnimator(0,
     (id, factor, fraction, callee) -> invalidate(),
     AnimatorUtils.DECELERATE_INTERPOLATOR, 180L
   );
@@ -109,18 +109,17 @@ public class TGMessageText extends TGMessage {
     this.pendingMessageText = pendingMessageText;
     if (this.pendingMessageText != null) {
       setText(this.pendingMessageText.text, false);
-      setLinkPreview(this.pendingMessageText.linkPreview, this.pendingMessageText.linkPreviewOptions);
+      setWebPage(this.pendingMessageText.webPage, this.pendingMessageText.linkPreviewOptions);
     } else {
       setText(text.text, false);
-      setLinkPreview(text.linkPreview, text.linkPreviewOptions);
+      setWebPage(text.webPage, text.linkPreviewOptions);
     }
   }
 
-  public TGMessageText (MessagesManager context, TdApi.SponsoredMessage sponsoredMessage, long inChatId) {
-    super(context, sponsoredMessage, inChatId);
+  public TGMessageText (MessagesManager context, long inChatId, TdApi.SponsoredMessage sponsoredMessage) {
+    super(context, inChatId, sponsoredMessage);
     this.currentMessageText = (TdApi.MessageText) sponsoredMessage.content;
     setText(currentMessageText.text, false);
-    // TODO button
   }
 
   public TGMessageText (MessagesManager context, TdApi.Message msg, TdApi.FormattedText text) {
@@ -128,15 +127,15 @@ public class TGMessageText extends TGMessage {
   }
 
   public TdApi.File getTargetFile () {
-    return linkPreview != null ? linkPreview.getTargetFile() : null;
+    return webPage != null ? webPage.getTargetFile() : null;
   }
 
   @Override
   public MediaViewThumbLocation getMediaThumbLocation (long messageId, View view, int viewTop, int viewBottom, int top) {
-    if (linkPreview == null || linkPreview.getMediaWrapper() == null) {
+    if (webPage == null || webPage.getMediaWrapper() == null) {
       return null;
     }
-    MediaViewThumbLocation location = linkPreview.getMediaWrapper().getMediaThumbLocation(view, viewTop, viewBottom, top);
+    MediaViewThumbLocation location = webPage.getMediaWrapper().getMediaThumbLocation(view, viewTop, viewBottom, top);
     if (location != null) {
       location.setColorId(useBubbles() && isOutgoing() ? ColorId.bubbleOut_background : ColorId.filling);
     }
@@ -148,10 +147,10 @@ public class TGMessageText extends TGMessage {
   }
 
   @Nullable
-  public String findUriFragment (TdApi.LinkPreview linkPreview) {
+  public String findUriFragment (TdApi.WebPage webPage) {
     if (text.entities == null || text.entities.length == 0)
       return null;
-    Uri lookupUri = Strings.wrapHttps(linkPreview.url);
+    Uri lookupUri = Strings.wrapHttps(webPage.url);
     if (lookupUri == null)
       return null;
     int count = 0;
@@ -196,18 +195,18 @@ public class TGMessageText extends TGMessage {
           return MESSAGE_REPLACE_REQUIRED;
         TdApi.MessageText messageText = (TdApi.MessageText) messageContent;
         this.pendingMessageText = messageText;
-        final boolean textChanged, linkPreviewChanged;
+        final boolean textChanged, webPageChanged;
         if (messageText != null) {
           textChanged = setText(messageText.text, false);
-          linkPreviewChanged = setLinkPreview(messageText.linkPreview, messageText.linkPreviewOptions);
+          webPageChanged = setWebPage(messageText.webPage, messageText.linkPreviewOptions);
         } else {
           textChanged = setText(currentMessageText.text, false);
-          linkPreviewChanged = setLinkPreview(currentMessageText.linkPreview, currentMessageText.linkPreviewOptions);
+          webPageChanged = setWebPage(currentMessageText.webPage, currentMessageText.linkPreviewOptions);
         }
-        if (!textChanged && !linkPreviewChanged) {
+        if (!textChanged && !webPageChanged) {
           return MESSAGE_NOT_CHANGED;
         }
-        if (linkPreviewChanged) {
+        if (webPageChanged) {
           rebuildContent();
         }
         return (getHeight() == oldHeight ? MESSAGE_INVALIDATED : MESSAGE_CHANGED);
@@ -218,15 +217,15 @@ public class TGMessageText extends TGMessage {
 
   @Nullable
   @Override
-  protected TdApi.LinkPreview findLinkPreview (String link) {
-    return linkPreview != null && linkPreview.isPreviewOf(link) ? linkPreview.getLinkPreview() : null;
+  protected TdApi.WebPage findLinkPreview (String link) {
+    return webPage != null && webPage.isPreviewOf(link) ? webPage.getWebPage() : null;
   }
 
   @Override
   protected boolean hasInstantView (String link) {
-    if (linkPreview == null || !linkPreview.needInstantView())
+    if (webPage == null || !webPage.needInstantView())
       return false;
-    if (link.equals(linkPreview.getLinkPreview().url))
+    if (link.equals(webPage.getWebPage().url))
       return true;
     boolean found = false;
     for (TdApi.TextEntity entity : text.entities) {
@@ -326,12 +325,12 @@ public class TGMessageText extends TGMessage {
 
   @Override
   public void requestTextMedia (ComplexReceiver textMediaReceiver) {
-    if (effectiveWrapper == null && linkPreview == null) {
+    if (effectiveWrapper == null && webPage == null) {
       textMediaReceiver.clear();
       return;
     }
-    if (linkPreview != null) {
-      linkPreview.requestTextMedia(textMediaReceiver, 0);
+    if (webPage != null) {
+      webPage.requestTextMedia(textMediaReceiver, 0);
     } else {
       textMediaReceiver.clearReceiversRange(0, MAX_WEB_PAGE_MEDIA_COUNT);
     }
@@ -361,54 +360,54 @@ public class TGMessageText extends TGMessage {
     }
     visibleText.measure(false);
 
-    int linkPreviewMaxWidth = getSmallestMaxContentWidth();
+    int webPageMaxWidth = getSmallestMaxContentWidth();
     if (pendingMessageText != null) {
-      if (setLinkPreview(pendingMessageText.linkPreview, pendingMessageText.linkPreviewOptions))
-        linkPreview.buildLayout(linkPreviewMaxWidth);
-    } else if (Td.isText(msg.content) && setLinkPreview(((TdApi.MessageText) msg.content).linkPreview, ((TdApi.MessageText) msg.content).linkPreviewOptions)) {
-      linkPreview.buildLayout(linkPreviewMaxWidth);
-    } else if (linkPreview != null && linkPreview.getMaxWidth() != linkPreviewMaxWidth) {
-      linkPreview.buildLayout(linkPreviewMaxWidth);
+      if (setWebPage(pendingMessageText.webPage, pendingMessageText.linkPreviewOptions))
+        webPage.buildLayout(webPageMaxWidth);
+    } else if (Td.isText(msg.content) && setWebPage(((TdApi.MessageText) msg.content).webPage, ((TdApi.MessageText) msg.content).linkPreviewOptions)) {
+      webPage.buildLayout(webPageMaxWidth);
+    } else if (webPage != null && webPage.getMaxWidth() != webPageMaxWidth) {
+      webPage.buildLayout(webPageMaxWidth);
     }
   }
 
-  private boolean setLinkPreview (TdApi.LinkPreview linkPreview, @Nullable TdApi.LinkPreviewOptions linkPreviewOptions) {
-    if (linkPreview != null) {
+  private boolean setWebPage (TdApi.WebPage page, @Nullable TdApi.LinkPreviewOptions linkPreviewOptions) {
+    if (page != null) {
       String url = null;
       if (text != null) {
-        url = Td.findUrl(text, linkPreview.url, false);
+        url = Td.findUrl(text, page.url, false);
       }
       if (StringUtils.isEmpty(url)) {
-        url = linkPreview.url;
+        url = page.url;
       }
-      this.linkPreview = new TGWebPage(this, linkPreview, url, linkPreviewOptions);
-      this.linkPreview.setViewProvider(currentViews);
-      this.linkPreviewAboveText.setValue(linkPreviewOptions != null && linkPreviewOptions.showAboveText, needAnimateChanges());
+      this.webPage = new TGWebPage(this, page, url, linkPreviewOptions);
+      this.webPage.setViewProvider(currentViews);
+      this.webPageOnTop.setValue(linkPreviewOptions != null && linkPreviewOptions.showAboveText, needAnimateChanges());
       return true;
     } else {
-      this.linkPreview = null;
-      this.linkPreviewAboveText.setValue(false, false);
+      this.webPage = null;
+      this.webPageOnTop.setValue(false, false);
     }
     return false;
   }
 
   @Override
   protected void onMessageIdChanged (long oldMessageId, long newMessageId, boolean success) {
-    if (linkPreview != null) {
-      linkPreview.updateMessageId(oldMessageId, newMessageId, success);
+    if (webPage != null) {
+      webPage.updateMessageId(oldMessageId, newMessageId, success);
     }
   }
 
   @Override
   protected void onMessageAttachedToView (@NonNull MessageView view, boolean attached) {
-    if (linkPreview != null) {
-      linkPreview.notifyInvalidateTargetsChanged();
+    if (webPage != null) {
+      webPage.notifyInvalidateTargetsChanged();
     }
   }
 
   private int getWebY () {
-    float linkPreviewAboveText = this.linkPreviewAboveText.getFloatValue();
-    return getContentY() + getTextTopOffset() + (int) ((visibleText.getMetadata().getTotalHeight() + Screen.dp(6f) * visibleText.getMetadata().getTotalVisibility()) * (1f - linkPreviewAboveText));
+    float webPageOnTop = this.webPageOnTop.getFloatValue();
+    return getContentY() + getTextTopOffset() + (int) ((visibleText.getMetadata().getTotalHeight() + Screen.dp(6f) * visibleText.getMetadata().getTotalVisibility()) * (1f - webPageOnTop));
   }
 
   @Override
@@ -425,8 +424,8 @@ public class TGMessageText extends TGMessage {
     TdApi.MessageText oldMessageText = Td.isText(oldContent) ? (TdApi.MessageText) oldContent : null;
     TdApi.MessageText newMessageText = Td.isText(newContent) ? (TdApi.MessageText) newContent : null;
     if (!Td.equalsTo(Td.textOrCaption(oldContent), Td.textOrCaption(newContent)) ||
-        !Td.equalsTo(oldMessageText != null ? oldMessageText.linkPreview : null,
-                     newMessageText != null ? newMessageText.linkPreview : null) ||
+        !Td.equalsTo(oldMessageText != null ? oldMessageText.webPage : null,
+                     newMessageText != null ? newMessageText.webPage : null) ||
         !Td.equalsTo(oldMessageText != null ? oldMessageText.linkPreviewOptions : null,
                      newMessageText != null ? newMessageText.linkPreviewOptions : null)
     ) {
@@ -443,13 +442,13 @@ public class TGMessageText extends TGMessage {
     this.currentMessageText = newText;
     if (!isBeingEdited()) {
       boolean textChanged = setText(newText.text, false);
-      boolean linkPreviewChanged = setLinkPreview(newText.linkPreview, newText.linkPreviewOptions);
-      if (linkPreviewChanged) {
+      boolean webPageChanged = setWebPage(newText.webPage, newText.linkPreviewOptions);
+      if (webPageChanged) {
         rebuildContent();
         invalidateContent(this);
         invalidatePreviewReceiver();
       }
-      if (linkPreviewChanged || textChanged) {
+      if (webPageChanged || textChanged) {
         invalidate();
       }
     }
@@ -458,23 +457,23 @@ public class TGMessageText extends TGMessage {
 
   @Override
   public boolean needImageReceiver () {
-    return linkPreview != null;
+    return webPage != null;
   }
 
   @Override
   public boolean needGifReceiver () {
-    return linkPreview != null && linkPreview.needGif();
+    return webPage != null && webPage.needGif();
   }
 
   @Override
   public int getImageContentRadius (boolean isPreview) {
-    return linkPreview != null ? linkPreview.getImageContentRadius(isPreview) : 0;
+    return webPage != null ? webPage.getImageContentRadius(isPreview) : 0;
   }
 
   @Override
   public void requestImage (ImageReceiver receiver) {
-    if (linkPreview != null) {
-      linkPreview.requestContent(receiver, getContentX(), getWebY());
+    if (webPage != null) {
+      webPage.requestContent(receiver, getContentX(), getWebY());
     } else {
       receiver.requestFile(null);
     }
@@ -482,15 +481,15 @@ public class TGMessageText extends TGMessage {
 
   @Override
   public void autoDownloadContent (TdApi.ChatType type) {
-    if (linkPreview != null) {
-      linkPreview.autodownloadContent(type);
+    if (webPage != null) {
+      webPage.autodownloadContent(type);
     }
   }
 
   @Override
   public void requestPreview (DoubleImageReceiver receiver) {
-    if (linkPreview != null) {
-      linkPreview.requestPreview(receiver);
+    if (webPage != null) {
+      webPage.requestPreview(receiver);
     } else {
       receiver.clear();
     }
@@ -498,8 +497,8 @@ public class TGMessageText extends TGMessage {
 
   @Override
   public void requestGif (GifReceiver receiver) {
-    if (linkPreview != null) {
-      linkPreview.requestGif(receiver, getContentX(), getWebY());
+    if (webPage != null) {
+      webPage.requestGif(receiver, getContentX(), getWebY());
     } else {
       receiver.requestFile(null);
     }
@@ -515,11 +514,11 @@ public class TGMessageText extends TGMessage {
   protected void drawContent (MessageView view, Canvas c, int startX, int startY, int maxWidth, Receiver preview, Receiver receiver) {
     float alpha = getTranslationLoadingAlphaValue();
     final int endXPadding = Config.MOVE_BUBBLE_TIME_RTL_TO_LEFT ? 0 : getBubbleTimePartWidth();
-    float linkPreviewAboveText = this.linkPreviewAboveText.getFloatValue();
+    float webPageOnTop = this.webPageOnTop.getFloatValue();
     ComplexReceiver textMediaReceiver = view.getTextMediaReceiver();
-    int linkPreviewY = getWebY();
+    int webPageY = getWebY();
     final int topTextY = startY + getTextTopOffset();
-    final int bottomTextY = linkPreview == null ? topTextY : linkPreviewY + linkPreview.getHeight() + Screen.dp(6f) + Screen.dp(2f);
+    final int bottomTextY = webPage == null ? topTextY : webPageY + webPage.getHeight() + Screen.dp(6f) + Screen.dp(2f);
     for (ListAnimator.Entry<TextWrapper> entry : visibleText) {
       final int startXRtl = getStartXRtl(entry.item, startX, maxWidth);
       boolean needClip = entry.getVisibility() != 1f && useBubbles();
@@ -529,19 +528,19 @@ public class TGMessageText extends TGMessage {
         c.clipRect(bubblePathRect);
       }
       float textAlpha = alpha * entry.getVisibility();
-      if (linkPreviewAboveText == 0f || linkPreview == null || receiver == null) {
+      if (webPageOnTop == 0f || webPage == null || receiver == null) {
         entry.item.draw(c, startX, startXRtl, endXPadding, topTextY, null, textAlpha, textMediaReceiver);
-      } else if (linkPreviewAboveText == 1f) {
+      } else if (webPageOnTop == 1f) {
         entry.item.draw(c, startX, startXRtl, endXPadding, bottomTextY, null, textAlpha, textMediaReceiver);
       } else {
         entry.item.beginDrawBatch(textMediaReceiver, 1);
 
         // top text
-        int topTextHeight = (int) ((float) (entry.item.getHeight() + Screen.dp(6f)) * MathUtils.clamp(linkPreviewAboveText));
-        entry.item.draw(c, startX, startXRtl, endXPadding, topTextY - topTextHeight, null, textAlpha * MathUtils.clamp(1f - linkPreviewAboveText), textMediaReceiver);
+        int topTextHeight = (int) ((float) (entry.item.getHeight() + Screen.dp(6f)) * MathUtils.clamp(webPageOnTop));
+        entry.item.draw(c, startX, startXRtl, endXPadding, topTextY - topTextHeight, null, textAlpha * MathUtils.clamp(1f - webPageOnTop), textMediaReceiver);
 
         // bottom text
-        entry.item.draw(c, startX, startXRtl, endXPadding, bottomTextY, null, textAlpha * MathUtils.clamp(linkPreviewAboveText), textMediaReceiver);
+        entry.item.draw(c, startX, startXRtl, endXPadding, bottomTextY, null, textAlpha * MathUtils.clamp(webPageOnTop), textMediaReceiver);
 
         entry.item.finishDrawBatch(textMediaReceiver, 1);
       }
@@ -549,9 +548,9 @@ public class TGMessageText extends TGMessage {
         Views.restore(c, saveToCount);
       }
     }
-    if (linkPreview != null && receiver != null) {
-      int linkPreviewX = Lang.rtl() ? startX + maxWidth - linkPreview.getWidth() : startX;
-      linkPreview.draw(view, c, linkPreviewX, linkPreviewY, preview, receiver, alpha, textMediaReceiver);
+    if (webPage != null && receiver != null) {
+      int webPageX = Lang.rtl() ? startX + maxWidth - webPage.getWidth() : startX;
+      webPage.draw(view, c, webPageX, webPageY, preview, receiver, alpha, textMediaReceiver);
     }
   }
 
@@ -563,10 +562,10 @@ public class TGMessageText extends TGMessage {
   @Override
   protected int getContentHeight () {
     int height = Math.round(visibleText.getMetadata().getTotalHeight() + getTextTopOffset() * visibleText.getMetadata().getTotalVisibility());
-    if (linkPreview != null) {
+    if (webPage != null) {
       if (height > 0)
         height += Screen.dp(6f);
-      height += linkPreview.getHeight() + Screen.dp(2f);
+      height += webPage.getHeight() + Screen.dp(2f);
     }
     return height;
   }
@@ -587,14 +586,14 @@ public class TGMessageText extends TGMessage {
   @Override
   protected int getBottomLineContentWidth () {
     int textLastLineWidth = calculateTextLastLineWidth();
-    float linkPreviewAboveText = this.linkPreviewAboveText.getFloatValue();
-    if (linkPreviewAboveText == 0f || linkPreview == null) {
-      if (linkPreview != null) {
-        return linkPreview.getLastLineWidth();
+    float webPageOnTop = this.webPageOnTop.getFloatValue();
+    if (webPageOnTop == 0f || webPage == null) {
+      if (webPage != null) {
+        return webPage.getLastLineWidth();
       } else {
         return textLastLineWidth;
       }
-    } else if (linkPreviewAboveText == 1f) {
+    } else if (webPageOnTop == 1f) {
       return textLastLineWidth;
     } else {
       // Animated
@@ -605,23 +604,23 @@ public class TGMessageText extends TGMessage {
   @Override
   protected float getIntermediateBubbleExpandFactor () {
     int textLastLineWidth = calculateTextLastLineWidth();
-    int linkPreviewLastLineWidth = linkPreview != null ? linkPreview.getLastLineWidth() : textLastLineWidth;
-    float fromExpandFactor = linkPreviewLastLineWidth == BOTTOM_LINE_EXPAND_HEIGHT ? 1f : 0f;
+    int webPageLastLineWidth = webPage != null ? webPage.getLastLineWidth() : textLastLineWidth;
+    float fromExpandFactor = webPageLastLineWidth == BOTTOM_LINE_EXPAND_HEIGHT ? 1f : 0f;
     float toExpandFactor = textLastLineWidth == BOTTOM_LINE_EXPAND_HEIGHT ? 1f : 0f;
-    return MathUtils.fromTo(fromExpandFactor, toExpandFactor, linkPreviewAboveText.getFloatValue());
+    return MathUtils.fromTo(fromExpandFactor, toExpandFactor, webPageOnTop.getFloatValue());
   }
 
   @Override
   protected int getAnimatedBottomLineWidth (int bubbleTimePartWidth) {
     int textLastLineWidth = calculateTextLastLineWidth();
-    int linkPreviewLastLineWidth = linkPreview != null ? linkPreview.getLastLineWidth() : textLastLineWidth;
-    float factor = linkPreviewAboveText.getFloatValue();
-    if (factor == 1f || linkPreview == null) {
+    int webPageLastLineWidth = webPage != null ? webPage.getLastLineWidth() : textLastLineWidth;
+    float factor = webPageOnTop.getFloatValue();
+    if (factor == 1f || webPage == null) {
       return textLastLineWidth;
     } else if (factor == 0f) {
-      return linkPreviewLastLineWidth;
+      return webPageLastLineWidth;
     }
-    int fromLastLineWidth = linkPreviewLastLineWidth == BOTTOM_LINE_EXPAND_HEIGHT ? linkPreview.getWidth() - bubbleTimePartWidth : linkPreviewLastLineWidth;
+    int fromLastLineWidth = webPageLastLineWidth == BOTTOM_LINE_EXPAND_HEIGHT ? webPage.getWidth() - bubbleTimePartWidth : webPageLastLineWidth;
     int toLastLineWidth = /*textLastLineWidth == BOTTOM_LINE_KEEP_WIDTH ? wrapper.getWidth() - bubbleTimePartWidth : */textLastLineWidth;
     return MathUtils.fromTo(fromLastLineWidth, toLastLineWidth, factor);
   }
@@ -629,8 +628,8 @@ public class TGMessageText extends TGMessage {
   @Override
   protected int getContentWidth () {
     int textWidth = Math.round(visibleText.getMetadata().getTotalWidth());
-    if (linkPreview != null) {
-      return Math.max(textWidth, linkPreview.getWidth());
+    if (webPage != null) {
+      return Math.max(textWidth, webPage.getWidth());
     }
     return textWidth;
   }
@@ -639,7 +638,7 @@ public class TGMessageText extends TGMessage {
 
   @Override
   protected void buildReactions (boolean animated) {
-    if (linkPreview != null || !useBubble() || visibleText.isEmpty() || !useReactionBubbles() /*|| replyData != null*/) {
+    if (webPage != null || !useBubble() || visibleText.isEmpty() || !useReactionBubbles() /*|| replyData != null*/) {
       super.buildReactions(animated);
     } else {
       final float maxWidthMultiply = replyData != null ? 1f : 0.7f;
@@ -655,26 +654,26 @@ public class TGMessageText extends TGMessage {
     return forceExpand;
   }
 
-  public TdApi.LinkPreview getLinkPreview () {
-    return linkPreview != null ? linkPreview.getLinkPreview() : null;
+  public TdApi.WebPage getWebPage () {
+    return webPage != null ? webPage.getWebPage() : null;
   }
 
-  public TGWebPage getParsedLinkPreview () {
-    return linkPreview;
+  public TGWebPage getParsedWebPage () {
+    return webPage;
   }
 
   @Override
   public boolean performLongPress (View view, float x, float y) {
     boolean res = super.performLongPress(view, x, y);
     TextWrapper wrapper = effectiveWrapper;
-    return (wrapper != null && wrapper.performLongPress(view)) || (linkPreview != null && linkPreview.performLongPress(view, this)) || res;
+    return (wrapper != null && wrapper.performLongPress(view)) || (webPage != null && webPage.performLongPress(view, this)) || res;
   }
 
   @Override
   protected void onMessageContainerDestroyed () {
     visibleText.clear(false);
-    if (linkPreview != null) {
-      linkPreview.performDestroy();
+    if (webPage != null) {
+      webPage.performDestroy();
     }
   }
 
@@ -689,7 +688,7 @@ public class TGMessageText extends TGMessage {
     if (wrapper != null && wrapper.onTouchEvent(view, e)) {
       return true;
     }
-    return (linkPreview != null && linkPreview.onTouchEvent(view, e, getContentX(), getWebY(), clickCallback()));
+    return (webPage != null && webPage.onTouchEvent(view, e, getContentX(), getWebY(), clickCallback()));
   }
 
   private TdApi.FormattedText translatedText;

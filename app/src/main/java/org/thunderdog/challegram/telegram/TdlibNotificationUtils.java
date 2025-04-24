@@ -53,7 +53,7 @@ import org.thunderdog.challegram.util.DeviceTokenType;
 import org.thunderdog.challegram.util.TokenRetriever;
 import org.thunderdog.challegram.util.text.Letters;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TdlibNotificationUtils {
   private static TextPaint lettersPaint;

@@ -147,9 +147,9 @@ import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.FutureBool;
 import me.vkryl.core.lambda.RunnableLong;
-import tgx.td.ChatId;
-import tgx.td.Td;
-import tgx.td.TdConstants;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
+import me.vkryl.td.TdConstants;
 
 public class ProfileController extends ViewController<ProfileController.Args> implements
   Menu,
@@ -1023,7 +1023,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     public void getItemOffsets (@NonNull Rect outRect, @NonNull View view, RecyclerView parent, @NonNull RecyclerView.State state) {
       RecyclerView.ViewHolder holder = parent.getChildViewHolder(view);
       if (holder != null) {
-        final int position = holder.getBindingAdapterPosition();
+        final int position = holder.getAdapterPosition();
         final int itemCount = parent.getAdapter().getItemCount();
 
         int top = 0;
@@ -1053,7 +1053,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     @Override
     public void getItemOffsets (@NonNull Rect outRect, @NonNull View view, RecyclerView parent, @NonNull RecyclerView.State state) {
       RecyclerView.ViewHolder holder = parent.getChildViewHolder(view);
-      if (holder != null && holder.getBindingAdapterPosition() == baseAdapter.getItems().size() - 1) {
+      if (holder != null && holder.getAdapterPosition() == baseAdapter.getItems().size() - 1) {
 
         final int parentHeight = parent.getMeasuredHeight();
         final int originalBottom = parentHeight - getPagerTopViewHeight() - getShadowBottomHeight();
@@ -1664,8 +1664,11 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     topView.setSelectionColorId(ColorId.profileSectionActive);
     topView.setTextFromToColorId(ColorId.textLight, ColorId.profileSectionActiveContent);
     addThemeInvalidateListener(topView);
-    topView.setShowLabelOnActiveOnly(!isEditing() && !Settings.instance().needReduceMotion());
-    topView.setItems(getPagerTitles());
+    if (Config.USE_ICON_TABS) {
+      // topView.setItems(getPagerIcons());
+    } else {
+      topView.setItems(getPagerTitles());
+    }
     topCellView.getRecyclerView().setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     topView.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
     topCellView.setLayoutParams(params);
@@ -1930,13 +1933,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
               break;
             }
           }
-        } else if (
-          itemId == R.id.btn_toggleSignatures ||
-          itemId == R.id.btn_toggleShowAuthors ||
-          itemId == R.id.btn_toggleProtection ||
-          itemId == R.id.btn_toggleJoinByRequest ||
-          itemId == R.id.btn_toggleAggressiveAntiSpam ||
-          itemId == R.id.btn_toggleHideMembers) {
+        } else if (itemId == R.id.btn_toggleSignatures || itemId == R.id.btn_toggleProtection || itemId == R.id.btn_toggleJoinByRequest || itemId == R.id.btn_toggleAggressiveAntiSpam || itemId == R.id.btn_toggleHideMembers) {
           view.getToggler().setRadioEnabled(item.isSelected(), isUpdate);
         }
         if (item.getViewType() == ListItem.TYPE_RADIO_SETTING) {
@@ -2534,12 +2531,12 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     }
   }
 
-  private SharedChatsController getCommonChatsController (@SharedChatsController.Mode int mode) {
+  private SharedChatsController getCommonChatsController () {
     ArrayList<SharedBaseController<?>> controllers = getControllers();
     final int count = controllers.size();
     for (int i = count - 1; i >= 0; i--) {
       SharedBaseController<?> c = controllers.get(i);
-      if (c instanceof SharedChatsController && ((SharedChatsController) c).getMode() == mode) {
+      if (c instanceof SharedChatsController) {
         return (SharedChatsController) c;
       }
     }
@@ -2566,7 +2563,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       return;
     }
     final boolean needGroups = userFull != null && userFull.groupInCommonCount > 0;
-    final SharedChatsController existingGroupsController = getCommonChatsController(SharedChatsController.Mode.GROUPS_IN_COMMON);
+    final SharedChatsController existingGroupsController = getCommonChatsController();
     boolean hasGroups = existingGroupsController != null;
     if (needGroups != hasGroups) {
       if (needGroups) {
@@ -2669,14 +2666,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     onItemsHeightProbablyChanged();
   }
 
-  private static ViewPagerTopView.Item newItem (SharedBaseController<?> c) {
-    return new ViewPagerTopView.Item(
-      c.getName().toString().toUpperCase(),
-      c.getIcon(),
-      null
-    );
-  }
-
   private void checkChannelMembers () {
     final boolean needMembers = supergroupFull != null && supergroupFull.canGetMembers;
     final SharedMembersController existingMembersController = getMembersController();
@@ -2688,7 +2677,11 @@ public class ProfileController extends ViewController<ProfileController.Args> im
         controllers.add(c);
         registerController(c);
         pagerAdapter.notifyItemInserted(controllers.size() - 1);
-        topCellView.getTopView().addItem(newItem(c));
+        if (Config.USE_ICON_TABS) {
+          // topCellView.getTopView().addItem(c.getIcon());
+        } else {
+          topCellView.getTopView().addItem(c.getName().toString().toUpperCase());
+        }
       } else {
         int i = controllers.indexOf(existingMembersController);
         if (i == -1) {
@@ -2818,7 +2811,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     return new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_useExplicitDice, 0, R.string.UseExplicitDice).setLongId(Settings.SETTING_FLAG_EXPLICIT_DICE);
   }
 
-  private int testerLevel = Tdlib.TesterLevel.UNKNOWN;
+  private int testerLevel = -1;
 
   private void checkEasterEggs () {
     if (mode != Mode.CHANNEL)
@@ -2826,7 +2819,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     long chatId = getChatId();
     if (chatId == Tdlib.TRENDING_STICKERS_CHAT_ID && Config.EXPLICIT_DICE_AVAILABLE) {
       int foundIndex = baseAdapter.indexOfViewById(R.id.btn_useExplicitDice);
-      boolean hasEasterEgg = isMember() && testerLevel >= Tdlib.TesterLevel.READER;
+      boolean hasEasterEgg = isMember() && testerLevel >= Tdlib.TESTER_LEVEL_READER;
       boolean hadEasterEgg = foundIndex != -1;
       if (hadEasterEgg != hasEasterEgg) {
         if (hadEasterEgg) {
@@ -2842,12 +2835,14 @@ public class ProfileController extends ViewController<ProfileController.Args> im
           addTopItem(newExplicitDiceItem(), index); // after peer_id, username
         }
       }
-      if (isMember() && testerLevel == Tdlib.TesterLevel.UNKNOWN) {
-        testerLevel = Tdlib.TesterLevel.NONE;
-        tdlib.getTesterLevel(newTesterLevel -> runOnUiThreadOptional(() -> {
-          testerLevel = newTesterLevel;
-          checkEasterEggs();
-        }));
+      if (isMember() && testerLevel == -1) {
+        testerLevel = Tdlib.TESTER_LEVEL_NONE;
+        tdlib.getTesterLevel(newTesterLevel -> {
+          if (!isDestroyed()) {
+            testerLevel = newTesterLevel;
+            checkEasterEggs();
+          }
+        });
       }
     }
   }
@@ -3271,7 +3266,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
             new ListItem(ListItem.TYPE_SHADOW_TOP),
             new ListItem(ListItem.TYPE_SETTING, R.id.btn_convertToBroadcastGroup, 0, R.string.ConvertToBroadcastGroup),
             new ListItem(ListItem.TYPE_SHADOW_BOTTOM),
-            new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Lang.pluralBold(R.string.ConvertToBroadcastGroupDesc, tdlib.supergroupSizeMax()))
+            new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Lang.pluralBold(R.string.ConvertToBroadcastGroupDesc, tdlib.supergroupMaxSize()))
           );
         }
       } else {
@@ -3324,30 +3319,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     if (tdlib.canToggleSignMessages(chat)) {
       boolean newValue = baseAdapter.toggleView(v);
       toggleSignMessagesItem.setSelected(newValue);
-      if (newValue) {
-        int insertIndex = baseAdapter.indexOfView(toggleSignMessagesItem);
-        if (insertIndex != -1) {
-          baseAdapter.addItems(insertIndex + 1,
-            new ListItem(ListItem.TYPE_SEPARATOR_FULL),
-            toggleShowAuthorsItem
-          );
-        }
-      } else {
-        int deleteIndex = baseAdapter.indexOfView(toggleShowAuthorsItem);
-        if (deleteIndex != -1) {
-          baseAdapter.removeRange(deleteIndex - 1, 2);
-        }
-      }
-      // TODO hint
-      onItemsHeightProbablyChanged();
-      checkDoneButton();
-    }
-  }
-
-  private void toggleChannelShowAuthors (View v) {
-    if (tdlib.canToggleSignMessages(chat)) {
-      boolean newValue = baseAdapter.toggleView(v);
-      toggleShowAuthorsItem.setSelected(newValue);
       checkDoneButton();
     }
   }
@@ -3624,8 +3595,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       hasHideMembersChanges() ||
       hasContentProtectionChanges() ||
       hasJoinByRequestChanges() ||
-      hasSignMessagesChanges() ||
-      hasShowAuthorsChanges();
+      hasSignMessagesChanges();
   }
 
   private boolean hasSlowModeChanges () {
@@ -3656,11 +3626,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
   private boolean hasSignMessagesChanges () {
     boolean originalValue = supergroup != null && supergroup.signMessages;
     return toggleSignMessagesItem != null && originalValue != toggleSignMessagesItem.isSelected();
-  }
-
-  private boolean hasShowAuthorsChanges () {
-    boolean originalValue = supergroup != null && supergroup.showMessageSender;
-    return toggleShowAuthorsItem != null && originalValue != toggleShowAuthorsItem.isSelected();
   }
 
   private boolean hasTtlChanges () {
@@ -3710,9 +3675,8 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     boolean hasContentProtectionChanges = hasContentProtectionChanges();
     boolean hasJoinByRequestChanges = hasJoinByRequestChanges();
     boolean hasSignMessagesChanges = hasSignMessagesChanges();
-    boolean hasShowAuthorsChanges = hasShowAuthorsChanges();
 
-    if (!force && (hasSlowModeChanges || hasAggressiveAntiSpamChanges || hasHideMembersChanges || hasJoinByRequestChanges || hasSignMessagesChanges || hasShowAuthorsChanges) && ChatId.isBasicGroup(chat.id)) {
+    if (!force && (hasSlowModeChanges || hasAggressiveAntiSpamChanges || hasHideMembersChanges || hasJoinByRequestChanges || hasSignMessagesChanges) && ChatId.isBasicGroup(chat.id)) {
       showConfirm(Lang.getMarkdownString(this, R.string.UpgradeChatPrompt), Lang.getString(R.string.Proceed), () -> applyChatChanges(true));
       return;
     }
@@ -3768,10 +3732,8 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       changes.add(new TdApi.ToggleSupergroupHasHiddenMembers(ChatId.toSupergroupId(chat.id), hideMembersItem.isSelected()));
     }
 
-    if (hasSignMessagesChanges || hasShowAuthorsChanges) {
-      boolean signMessages = toggleSignMessagesItem.isSelected();
-      boolean showAuthors = signMessages && toggleShowAuthorsItem.isSelected();
-      changes.add(new TdApi.ToggleSupergroupSignMessages(ChatId.toSupergroupId(chat.id), signMessages, showAuthors));
+    if (hasSignMessagesChanges) {
+      changes.add(new TdApi.ToggleSupergroupSignMessages(ChatId.toSupergroupId(chat.id), toggleSignMessagesItem.isSelected()));
     }
 
     if (changes.isEmpty()) {
@@ -3877,7 +3839,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
 
   private ListItem slowModeItem, slowModeDescItem;
   private ListItem aggressiveAntiSpamItem, hideMembersItem,
-    toggleJoinByRequestItem, toggleHasProtectionItem, toggleSignMessagesItem, toggleShowAuthorsItem;
+    toggleJoinByRequestItem, toggleHasProtectionItem, toggleSignMessagesItem;
   private ListItem ttlItem, ttlDescItem;
 
   private void buildEditCells () {
@@ -3920,7 +3882,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       items.add(chatDescriptionItem);
 
       baseAdapter.setLockFocusOn(this, false);
-      baseAdapter.setTextChangeListener((id, item, v) -> {
+      baseAdapter.setTextChangeListener((id, item, v, text) -> {
         // item.setStringValue(text);
         if (id == R.id.description) {
           // onItemsHeightProbablyChanged();
@@ -3981,11 +3943,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     if (tdlib.canToggleSignMessages(chat)) {
       items.add(new ListItem(added ? ListItem.TYPE_SEPARATOR_FULL : ListItem.TYPE_SHADOW_TOP));
       items.add(toggleSignMessagesItem = new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_toggleSignatures, 0, R.string.ChannelSignMessages, supergroup.signMessages));
-      toggleShowAuthorsItem = new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_toggleShowAuthors, 0, R.string.ChannelShowAuthors, supergroup.showMessageSender);
-      if (supergroup.signMessages) {
-        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-        items.add(toggleShowAuthorsItem);
-      }
       added = true;
     }
     if (tdlib.canToggleContentProtection(chat.id) || (myStatus != null && TD.isAdmin(myStatus))) {
@@ -4068,7 +4025,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
       items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_convertToBroadcastGroup, 0, R.string.ConvertToBroadcastGroup));
       items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
-      items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Lang.pluralBold(R.string.ConvertToBroadcastGroupDesc, tdlib.supergroupSizeMax())));
+      items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Lang.pluralBold(R.string.ConvertToBroadcastGroupDesc, tdlib.supergroupMaxSize())));
     }
 
     if ((supergroupFull != null && supergroupFull.canHideMembers) || (groupFull != null && groupFull.canHideMembers && tdlib.canUpgradeChat(chat.id))) {
@@ -4354,8 +4311,8 @@ public class ProfileController extends ViewController<ProfileController.Args> im
         if (supergroupFull == null) {
           return;
         }
-        if (supergroupFull.memberCount >= tdlib.supergroupSizeMax()) {
-          context.tooltipManager().builder(view).show(this, tdlib, R.drawable.baseline_error_24, Lang.pluralBold(R.string.ParticipantXLimitReached, tdlib.supergroupSizeMax()));
+        if (supergroupFull.memberCount >= tdlib.supergroupMaxSize()) {
+          context.tooltipManager().builder(view).show(this, tdlib, R.drawable.baseline_error_24, Lang.pluralBold(R.string.ParticipantXLimitReached, tdlib.supergroupMaxSize()));
           return;
         }
       }
@@ -4883,8 +4840,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       editLinkedChat();
     } else if (viewId == R.id.btn_toggleSignatures) {
       toggleChannelSignatures(v);
-    } else if (viewId == R.id.btn_toggleShowAuthors) {
-      toggleChannelShowAuthors(v);
     } else if (viewId == R.id.btn_toggleAggressiveAntiSpam) {
       toggleAggressiveAntiSpam(v);
     } else if (viewId == R.id.btn_toggleHideMembers) {
@@ -5244,7 +5199,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     if (headerCell != null && chat != null) {
       headerCell.setUseRedHighlight(tdlib.isRedTeam(chat.id));
       headerCell.setText(tdlib.chatTitle(chat, false), makeSubtitle(false));
-      headerCell.setAllowTitleClick(chat.id);
       headerCell.setEmojiStatus(tdlib.chatUser(chat));
       headerCell.setExpandedSubtitle(makeSubtitle(true));
     }
@@ -5278,7 +5232,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
 
   @Override
   public void onPageScrolled (int position, float positionOffset, int positionOffsetPixels) {
-    positionOffset = ViewPager.clampPositionOffset(positionOffset);
     if (this.checkedBasePosition != position) {
       checkedBasePosition = position;
       checkContentScrollY(position);
@@ -5352,9 +5305,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
 
   @Override
   public void onPageScrollStateChanged (int state) {
-    if (topCellView != null && state != ViewPager.SCROLL_STATE_SETTLING) {
-      topCellView.getTopView().resetFromTo();
-    }
+
   }
 
   @Override
@@ -5736,13 +5687,24 @@ public class ProfileController extends ViewController<ProfileController.Args> im
 
   private final ArrayList<SharedBaseController<?>> controllers = new ArrayList<>(6);
 
-  private List<ViewPagerTopView.Item> getPagerTitles () {
-    ArrayList<SharedBaseController<?>> controllers = getControllers();
-    List<ViewPagerTopView.Item> items = new ArrayList<>(controllers.size());
-    for (SharedBaseController<?> c : controllers) {
-      items.add(newItem(c));
+  /*private int[] getPagerIcons () {
+    ArrayList<SharedBaseController> controllers = getControllers();
+    int[] icons = new int[controllers.size()];
+    int i = 0;
+    for (SharedBaseController c : controllers) {
+      icons[i++] = c.getIcon();
     }
-    return items;
+    return icons;
+  }*/
+
+  private String[] getPagerTitles () {
+    ArrayList<SharedBaseController<?>> controllers = getControllers();
+    String[] strings = new String[controllers.size()];
+    int i = 0;
+    for (SharedBaseController<?> c : controllers) {
+      strings[i++] = c.getName().toString().toUpperCase();
+    }
+    return strings;
   }
 
   private ArrayList<SharedBaseController<?>> getControllers () {
@@ -5816,8 +5778,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
             } else {
               fillMediaControllers(controllers, context, tdlib);
             }
-            getSimilarChatsCount(false, true);
-            getSimilarChatsCount(true, true);
+            getSimilarChatsCount(true);
           } else {
             controllers.add(new SharedRestrictionController(context, tdlib).setRestrictionReason(restrictionReason));
           }
@@ -5827,9 +5788,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
             case Mode.SECRET:
               TdApi.UserFullInfo userFull = tdlib.cache().userFull(user.id);
               if (userFull != null && userFull.groupInCommonCount > 0) {
-                SharedChatsController c = new SharedChatsController(context, tdlib);
-                c.setMode(SharedChatsController.Mode.GROUPS_IN_COMMON);
-                controllers.add(c);
+                controllers.add(new SharedChatsController(context, tdlib));
               }
               break;
             case Mode.CHANNEL:
@@ -5865,7 +5824,11 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     registerController(c);
     controllers.add(c);
     pagerAdapter.notifyItemInserted(controllers.size() - 1);
-    topCellView.getTopView().addItem(newItem(c));
+    if (Config.USE_ICON_TABS) {
+      // topCellView.getTopView().addItem(c.getIcon());
+    } else {
+      topCellView.getTopView().addItem(c.getName().toString().toUpperCase());
+    }
     pagerAdapter.notifyDataSetChanged();
   }
 
@@ -5883,23 +5846,18 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     pagerAdapter.notifyDataSetChanged();
   }
 
-  private int similarChatCount, similarBotsCount;
+  private int similarChatCount;
 
-  private void setSimilarChatCount (boolean similarBots, int count) {
+  private void setSimilarChatCount (int count) {
     boolean needSimilarChats = count > 0;
-    @SharedChatsController.Mode int targetMode = similarBots ? SharedChatsController.Mode.SIMILAR_BOTS : SharedChatsController.Mode.SIMILAR_CHANNELS;
-    final SharedChatsController existingChatsController = getCommonChatsController(targetMode);
+    final SharedChatsController existingChatsController = getCommonChatsController();
     boolean hasSimilarChats = existingChatsController != null;
-    if (similarBots) {
-      this.similarBotsCount = count;
-    } else {
-      this.similarChatCount = count;
-    }
+    this.similarChatCount = count;
 
     if (needSimilarChats != hasSimilarChats) {
       if (needSimilarChats) {
         SharedChatsController c = new SharedChatsController(context, tdlib);
-        c.setMode(targetMode);
+        c.setMode(SharedChatsController.Mode.SIMILAR_CHANNELS);
         c.setTotalCountWithPremium(count);
         addControllerTab(c);
       } else {
@@ -5908,29 +5866,23 @@ public class ProfileController extends ViewController<ProfileController.Args> im
     }
   }
 
-  private void getSimilarChatsCount (boolean similarBots, boolean returnLocal) {
-    if (isEditing()) {
+  private void getSimilarChatsCount (boolean returnLocal) {
+    if (!isChannel() || isEditing()) {
       return;
     }
-    if (similarBots ? (mode != Mode.USER && mode != Mode.SECRET) : !isChannel()) {
-      return;
-    }
-    TdApi.Function<TdApi.Count> function = similarBots ?
-      new TdApi.GetBotSimilarBotCount(tdlib.chatUserId(getChatId()), returnLocal) :
-      new TdApi.GetChatSimilarChatCount(getChatId(), returnLocal);
-    tdlib.send(function, (similarChatCount, error) -> {
+    tdlib.send(new TdApi.GetChatSimilarChatCount(getChatId(), returnLocal), (similarChatCount, error) -> {
       int count;
       if (error != null) {
-        Log.e("TDLib error getChatSimilarChatCount chatId:%d, bots:%b returnLocal:%b: %s", getChatId(), similarBots, returnLocal, TD.toErrorString(error));
+        Log.e("TDLib error getChatSimilarChatCount chatId:%d, returnLocal:%b: %s", getChatId(), returnLocal, TD.toErrorString(error));
         count = -1;
       } else {
         count = similarChatCount.count;
       }
-      runOnUiThreadOptional(() ->
-        setSimilarChatCount(similarBots, count)
-      );
+      runOnUiThreadOptional(() -> {
+        setSimilarChatCount(count);
+      });
       if (returnLocal && count == -1) {
-        getSimilarChatsCount(similarBots, false);
+        getSimilarChatsCount(false);
       }
     });
   }
@@ -6024,7 +5976,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       controllers.add(c);
       registerController(c);
       pagerAdapter.notifyItemInserted(controllers.size() - 1);
-      topCellView.getTopView().addItem(newItem(c));
+      topCellView.getTopView().addItem(c.getName().toString().toUpperCase());
     } else {
       SharedBaseController<?> c = controllers.get(visualIndex);
       if (SharedBaseController.isMediaController(c) && c.provideSearchFilter().getConstructor() == filter.getConstructor()) {
@@ -6034,7 +5986,7 @@ public class ProfileController extends ViewController<ProfileController.Args> im
       controllers.add(visualIndex, c);
       registerController(c);
       pagerAdapter.notifyItemInserted(visualIndex);
-      topCellView.getTopView().addItemAtIndex(newItem(c), visualIndex);
+      topCellView.getTopView().addItemAtIndex(c.getName().toString().toUpperCase(), visualIndex);
     }
     pagerAdapter.notifyDataSetChanged();
   }
@@ -6308,9 +6260,6 @@ public class ProfileController extends ViewController<ProfileController.Args> im
             }
             case SharedChatsController.Mode.SIMILAR_CHANNELS: {
               return Lang.pluralBold(R.string.xSimilarChannels, similarChatCount);
-            }
-            case SharedChatsController.Mode.SIMILAR_BOTS: {
-              return Lang.pluralBold(R.string.xSimilarBots, similarBotsCount);
             }
             default:
               throw new IllegalStateException();

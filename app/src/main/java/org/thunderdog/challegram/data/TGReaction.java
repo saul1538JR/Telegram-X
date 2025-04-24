@@ -19,7 +19,7 @@ import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.util.text.TextMedia;
 
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TGReaction {
   private final Tdlib tdlib;
@@ -262,7 +262,6 @@ public class TGReaction {
     public void setColorFilter (@Nullable ColorFilter colorFilter) { }
 
     @Override
-    @SuppressWarnings("deprecation")
     public int getOpacity () {
       return PixelFormat.UNKNOWN;
     }

@@ -18,7 +18,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.TextPaint;
@@ -67,9 +66,9 @@ import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
-import tgx.td.ChatId;
-import tgx.td.MessageId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.MessageId;
+import me.vkryl.td.Td;
 
 public class LiveLocationHelper implements LiveLocationManager.Listener, FactorAnimator.Target, BaseView.ActionListProvider, ForceTouchView.ActionListener, MessageListener, Handler.Callback, ClickHelper.Delegate {
   private static final int ANIMATOR_SUBTEXT = 0;
@@ -110,7 +109,7 @@ public class LiveLocationHelper implements LiveLocationManager.Listener, FactorA
     this.onBackground = onBackground;
     this.callback = callback;
     this.icon = Drawables.get(context.getResources(), R.drawable.baseline_location_on_18);
-    this.handler = chatId != 0 ? new Handler(Looper.getMainLooper(), this) : null;
+    this.handler = chatId != 0 ? new Handler(this) : null;
     this.clickHelper = chatId != 0 ? new ClickHelper(this) : null;
   }
 

@@ -36,7 +36,7 @@ import java.util.List;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.reference.ReferenceList;
 import me.vkryl.core.reference.ReferenceUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class ImageFile {
   public static final int HTTP_START_ID = -1000000;

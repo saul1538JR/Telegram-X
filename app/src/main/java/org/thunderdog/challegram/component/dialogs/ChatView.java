@@ -70,7 +70,7 @@ import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.util.InvalidateContentProvider;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.collection.IntList;
-import tgx.td.ChatPosition;
+import me.vkryl.td.ChatPosition;
 
 public class ChatView extends BaseView implements TdlibSettingsManager.PreferenceChangeListener, InvalidateContentProvider, EmojiStatusHelper.EmojiStatusReceiverInvalidateDelegate, TdlibUi.MessageProvider {
   private static Paint timePaint;

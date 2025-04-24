@@ -581,8 +581,7 @@ public class EditLanguageController extends EditBaseController<EditLanguageContr
   private boolean madeChanges;
 
   @Override
-  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v) {
-    String text = v.getText().toString();
+  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v, String text) {
     if (
       id == R.id.string ||
       id == R.id.pluralZero ||

@@ -52,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class SettingsPrivacyController extends RecyclerViewController<SettingsPrivacyController.Args> implements View.OnClickListener, ViewController.SettingsIntDelegate, TdlibCache.UserDataChangeListener, TdlibContactManager.StatusChangeListener, PrivacySettingsListener, SessionListener, ChatListener {
   public static class Args {
@@ -102,8 +102,6 @@ public class SettingsPrivacyController extends RecyclerViewController<SettingsPr
           v.getToggler().setRadioEnabled(Settings.instance().needsIncognitoMode(), isUpdate);
         } else if (itemId == R.id.btn_blockedSenders) {
           v.setData(getBlockedSendersCount());
-        } else if (itemId == R.id.btn_newChatsPrivacy) {
-          v.setData(buildNewChatsPrivacy());
         } else if (itemId == R.id.btn_privacyRule) {
           v.setData(buildPrivacy(((TdApi.UserPrivacySetting) item.getData()).getConstructor()));
         } else if (itemId == R.id.btn_sessions) {
@@ -187,15 +185,6 @@ public class SettingsPrivacyController extends RecyclerViewController<SettingsPr
       }
       items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_privacyRule, SettingsPrivacyKeyController.getIcon(privacySetting), SettingsPrivacyKeyController.getName(privacySetting, false, false)).setData(privacySetting).setLongId(privacySetting.getConstructor()));
       getPrivacy(privacySetting);
-      if (privacySetting.getConstructor() == TdApi.UserPrivacySettingAllowPrivateVoiceAndVideoNoteMessages.CONSTRUCTOR) {
-        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-        items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_newChatsPrivacy, R.drawable.baseline_chat_bubble_24, R.string.PrivacyMessagePreview));
-        tdlib.send(new TdApi.GetNewChatPrivacySettings(), (newChatPrivacySettings, error) -> runOnUiThreadOptional(() -> {
-          if (newChatPrivacySettings != null) {
-            setNewChatsPrivacy(newChatPrivacySettings);
-          }
-        }));
-      }
     }
     items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
     items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, R.string.PeerToPeerInfo));
@@ -315,13 +304,6 @@ public class SettingsPrivacyController extends RecyclerViewController<SettingsPr
       if (!isDestroyed()) {
         setPrivacyRules(setting.getConstructor(), rules);
       }
-    });
-  }
-
-  @Override
-  public void onNewChatPrivacySettingsChanged (TdApi.NewChatPrivacySettings newChatPrivacySettings) {
-    runOnUiThreadOptional(() -> {
-      setNewChatsPrivacy(newChatPrivacySettings);
     });
   }
 
@@ -448,20 +430,13 @@ public class SettingsPrivacyController extends RecyclerViewController<SettingsPr
       SettingsBlockedController c = new SettingsBlockedController(context, tdlib);
       c.setArguments(new TdApi.BlockListMain());
       navigateTo(c);
-    } else if (id == R.id.btn_newChatsPrivacy) {
-      if (!tdlib.canSetNewChatPrivacySettings() && tdlib.ui().showPremiumAlert(this, v, TdlibUi.PremiumFeature.NEW_CHATS_PRIVACY)) {
-        return;
-      }
-      SettingsPrivacyKeyController c = new SettingsPrivacyKeyController(context, tdlib);
-      c.setArguments(SettingsPrivacyKeyController.Args.newChatsPrivacy());
-      navigateTo(c);
     } else if (id == R.id.btn_privacyRule) {
       TdApi.UserPrivacySetting setting = (TdApi.UserPrivacySetting) ((ListItem) v.getTag()).getData();
       if (Td.requiresPremiumSubscription(setting) && tdlib.ui().showPremiumAlert(this, v, TdlibUi.PremiumFeature.RESTRICT_VOICE_AND_VIDEO_MESSAGES)) {
         return;
       }
       SettingsPrivacyKeyController c = new SettingsPrivacyKeyController(context, tdlib);
-      c.setArguments(new SettingsPrivacyKeyController.Args(setting));
+      c.setArguments(setting);
       navigateTo(c);
     } else if (id == R.id.btn_sessions) {
       lastClickedButton = id;
@@ -791,21 +766,6 @@ public class SettingsPrivacyController extends RecyclerViewController<SettingsPr
     privacyRules.put(privacyKey, rules);
     if (adapter != null)
       adapter.updateValuedSettingByLongId(privacyKey);
-  }
-
-  private TdApi.NewChatPrivacySettings newChatPrivacySettings;
-
-  private CharSequence buildNewChatsPrivacy () {
-    if (newChatPrivacySettings != null) {
-      return Lang.getMarkdownString(this, newChatPrivacySettings.allowNewChatsFromUnknownUsers ? R.string.PrivacyMessageEverybody : R.string.PrivacyMessageContactsPremium);
-    } else {
-      return Lang.getString(R.string.LoadingInformation);
-    }
-  }
-
-  private void setNewChatsPrivacy (TdApi.NewChatPrivacySettings newChatPrivacySettings) {
-    this.newChatPrivacySettings = newChatPrivacySettings;
-    adapter.updateValuedSettingById(R.id.btn_newChatsPrivacy);
   }
 
   private void setBlockedSenders (TdApi.MessageSenders senders) {

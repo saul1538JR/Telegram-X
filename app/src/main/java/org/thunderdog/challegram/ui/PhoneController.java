@@ -80,7 +80,7 @@ import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.RunnableBool;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class PhoneController extends EditBaseController<Void> implements SettingsAdapter.TextChangeListener, MaterialEditTextGroup.FocusListener, MaterialEditTextGroup.TextChangeListener, View.OnClickListener, Menu {
 
@@ -303,7 +303,7 @@ public class PhoneController extends EditBaseController<Void> implements Setting
     countryWrap.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, headerHeight, Gravity.TOP));
 
     String countryText = storedValues.get(R.id.login_country, "");
-    countryView = new MaterialEditTextGroup(context, tdlib);
+    countryView = new MaterialEditTextGroup(context);
     countryView.addThemeListeners(this);
     countryView.setUseTextChangeAnimations();
     countryView.getEditText().setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_WORDS | InputType.TYPE_TEXT_VARIATION_POSTAL_ADDRESS);
@@ -398,7 +398,7 @@ public class PhoneController extends EditBaseController<Void> implements Setting
 
         String codeText = storedValues.get(R.id.login_code, "");
 
-        codeView = new MaterialEditTextGroup(context, tdlib);
+        codeView = new MaterialEditTextGroup(context);
         codeView.addThemeListeners(PhoneController.this);
         codeView.setLayoutParams(params);
         codeView.getEditText().setId(R.id.login_code);
@@ -416,7 +416,7 @@ public class PhoneController extends EditBaseController<Void> implements Setting
         params.leftMargin = Screen.dp(89f);
 
         String numberText = storedValues.get(R.id.login_country, "");
-        numberView = new MaterialEditTextGroup(context, tdlib);
+        numberView = new MaterialEditTextGroup(context);
         numberView.addThemeListeners(PhoneController.this);
         numberView.getEditText().setBackspaceListener((v, editable, selectionStart, selectionEnd) -> {
           if (editable.length() == 0) {
@@ -590,7 +590,7 @@ public class PhoneController extends EditBaseController<Void> implements Setting
   private boolean ignorePhoneChanges;
 
   @Override
-  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v) {
+  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v, String text) {
     if (id == R.id.edit_first_name) {
       updateDoneState();
     }
@@ -1084,18 +1084,14 @@ public class PhoneController extends EditBaseController<Void> implements Setting
       return;
     }
     context.forceRunEmulatorChecks(detectionResult -> executeOnUiThreadOptional(() -> {
-      if (detectionResult == null || !detectionResult.isEmulatorDetected()) {
-        return;
-      }
-      if (emulatorPrompt != null && emulatorPrompt.isShowing()) {
-        return;
-      }
-      boolean mayBeFalsePositive = detectionResult.mayBeFalsePositive();
-      AlertDialog.Builder b = new AlertDialog.Builder(context, Theme.dialogTheme());
-      b.setTitle(Lang.getString(R.string.EmulatorWarningTitle));
-      b.setMessage(Lang.getMarkdownStringSecure(this, mayBeFalsePositive ? R.string.EmulatorWarning : R.string.EmulatorWarningStrict));
-      b.setPositiveButton(Lang.getString(R.string.EmulatorWarningBtnOk), (dialog, which) -> dialog.dismiss());
-      if (mayBeFalsePositive) {
+      if (detectionResult != null && detectionResult.isEmulatorDetected()) {
+        if (emulatorPrompt != null && emulatorPrompt.isShowing()) {
+          return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(context, Theme.dialogTheme());
+        b.setTitle(Lang.getString(R.string.EmulatorWarningTitle));
+        b.setMessage(Lang.getMarkdownStringSecure(this, R.string.EmulatorWarning));
+        b.setPositiveButton(Lang.getString(R.string.EmulatorWarningBtnOk), (dialog, which) -> dialog.dismiss());
         b.setNeutralButton(Lang.getString(R.string.EmulatorWarningBtnReport), (dialog, which) -> {
           try {
             Uri uri = Uri.parse(BuildConfig.REMOTE_URL);
@@ -1151,9 +1147,9 @@ public class PhoneController extends EditBaseController<Void> implements Setting
             UI.showToast("Unable to create report: " + Log.toString(t), Toast.LENGTH_SHORT);
           }
         });
+        b.setCancelable(false);
+        emulatorPrompt = showAlert(b);
       }
-      b.setCancelable(false);
-      emulatorPrompt = showAlert(b);
     }));
   }
 

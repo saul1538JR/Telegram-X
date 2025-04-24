@@ -34,7 +34,6 @@ import org.thunderdog.challegram.tool.Screen;
 import org.thunderdog.challegram.tool.Strings;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.util.DrawableProvider;
-import org.thunderdog.challegram.util.text.counter.CounterTextPart;
 
 import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.BoolAnimator;
@@ -46,7 +45,7 @@ import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 
-public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<CounterTextPart>, TextColorSet  {
+public final class Counter implements FactorAnimator.Target, CounterAnimator.Callback<Text>, TextColorSet  {
   public static Callback newCallback (View view) {
     return new Callback() {
       @Override
@@ -83,7 +82,6 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
     private int failedTextColorId = ColorId.badgeFailedText;
     private int outlineColorId;
     private boolean visibleIfZero;
-    private CustomTextPartBuilder customTextPartBuilder;
 
     private TextColorSet colorSet;
 
@@ -99,11 +97,6 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
 
     public Builder outlineAffectsBackgroundSize (boolean outlineAffectsBackgroundSize) {
       this.flags = BitwiseUtils.setFlag(flags, FLAG_OUTLINE_AFFECTS_BACKGROUND_SIZE, outlineAffectsBackgroundSize);
-      return this;
-    }
-
-    public Builder setCustomTextPartBuilder (CustomTextPartBuilder customTextPartBuilder) {
-      this.customTextPartBuilder = customTextPartBuilder;
       return this;
     }
 
@@ -172,12 +165,12 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
       return new Counter(textSize, callback, flags,
         textColorId, mutedTextColorId, failedTextColorId, outlineColorId,
         drawableRes, drawableWidthDp, drawableMarginDp, drawableGravity,
-        colorSet, extendedDrawable, visibleIfZero, backgroundPadding, customTextPartBuilder
+        colorSet, extendedDrawable, visibleIfZero, backgroundPadding
       );
     }
   }
 
-  private final CounterAnimator<CounterTextPart> counter = new CounterAnimator<>(this);
+  private final CounterAnimator<Text> counter = new CounterAnimator<>(this);
   private final BounceAnimator isVisible = new BounceAnimator(this);
   private final BoolAnimator isMuted = new BoolAnimator(1, this, AnimatorUtils.DECELERATE_INTERPOLATOR, 120l);
   private final BoolAnimator isFailed = new BoolAnimator(2, this, AnimatorUtils.DECELERATE_INTERPOLATOR, 120l);
@@ -207,8 +200,7 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
   private Counter (float textSize, Callback callback, int flags,
                    @ColorId int textColorId, @ColorId int mutedTextColorId, @ColorId int failedTextColorId, @ColorId int outlineColorId,
                    @DrawableRes int drawableRes, float drawableWidthDp, float drawableMarginDp, int drawableGravity,
-                   @Nullable TextColorSet colorSet, Drawable counterDrawable, boolean visibleIfZero, @Dimension(unit = Dimension.DP) float backgroundPadding,
-                   @Nullable CustomTextPartBuilder customTextPartBuilder) {
+                   @Nullable TextColorSet colorSet, Drawable counterDrawable, boolean visibleIfZero, @Dimension(unit = Dimension.DP) float backgroundPadding) {
     this.textSize = textSize;
     this.callback = callback;
     this.flags = flags;
@@ -224,7 +216,6 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
     this.extendedDrawable = counterDrawable;
     this.visibleIfZero = visibleIfZero;
     this.backgroundPadding = backgroundPadding;
-    this.customTextPartBuilder = customTextPartBuilder;
   }
 
   public int getColor (float muteFactor, int mainColorId, int mutedColorId, int failedColorId) {
@@ -337,7 +328,7 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
 
   public float getTargetWidth () {
     float targetTotalWidth = 0;
-    for (ListAnimator.Entry<CounterAnimator.Part<CounterTextPart>> entry : counter) {
+    for (ListAnimator.Entry<CounterAnimator.Part<Text>> entry : counter) {
       targetTotalWidth += entry.isAffectingList() ? entry.item.getWidth() : 0f;
     }
 
@@ -405,18 +396,8 @@ public class Counter implements FactorAnimator.Target, CounterAnimator.Callback<
     invalidate(changed);
   }
 
-  private final CustomTextPartBuilder customTextPartBuilder;
-
-  public interface CustomTextPartBuilder {
-    CounterTextPart onCreateTextDrawable (String text);
-  }
-
   @Override
-  public CounterTextPart onCreateTextDrawable (String text) {
-    if (customTextPartBuilder != null) {
-      return customTextPartBuilder.onCreateTextDrawable(text);
-    }
-
+  public Text onCreateTextDrawable (String text) {
     return new Text.Builder(text, Integer.MAX_VALUE, Paints.robotoStyleProvider(textSize), this).noSpacing().allBold(BitwiseUtils.hasFlag(flags, FLAG_ALL_BOLD)).build();
   }
 

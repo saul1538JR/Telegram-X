@@ -76,17 +76,18 @@ public class PaintState {
     }
   }
 
-  public static void forgetPaintState (int paintId) {
-    synchronized (PaintState.class) {
-      if (pendingPaints != null) {
-        pendingPaints.remove(paintId);
-      }
-    }
-  }
-
   public static PaintState obtainPaintState (int paintId) {
     synchronized (PaintState.class) {
-      return pendingPaints != null ? pendingPaints.get(paintId) : null;
+      if (pendingPaints == null) {
+        return null;
+      }
+      int i = pendingPaints.indexOfKey(paintId);
+      if (i >= 0) {
+        PaintState painting = pendingPaints.valueAt(i);
+        pendingPaints.removeAt(i);
+        return painting;
+      }
+      return null;
     }
   }
 
@@ -188,7 +189,6 @@ public class PaintState {
         b.writeVarint(paintId);
 
         putPaintState(paintId, this);
-        final int paintIdFinal = paintId;
         final File fileFinal = file;
         final int sizeFinal = size;
 
@@ -208,7 +208,6 @@ public class PaintState {
               for (SimpleDrawing drawing : drawingsList) {
                 drawing.save(f);
               }
-              forgetPaintState(paintIdFinal);
             } catch (Throwable t) {
               Log.w("Cannot save paint file: %s", t, fileFinal.getName());
             }
@@ -231,7 +230,8 @@ public class PaintState {
     return b.toByteArray();
   }
 
-  public String saveAndSerializeToString () {
+  @Override
+  public String toString () {
     if (isEmpty()) {
       return "";
     }

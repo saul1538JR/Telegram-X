@@ -47,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import tgx.td.MessageId;
+import me.vkryl.td.MessageId;
 
 public class MessageStatisticsController extends RecyclerViewController<MessageStatisticsController.Args> implements View.OnClickListener {
   public static class Args {

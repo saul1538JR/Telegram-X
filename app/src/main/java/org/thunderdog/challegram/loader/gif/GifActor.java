@@ -52,7 +52,7 @@ import me.vkryl.android.ViewUtils;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.reference.ReferenceList;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 @SuppressWarnings ("JniMissingFunction")
 public class GifActor implements GifState.Callback, TGPlayerController.TrackChangeListener {

@@ -85,8 +85,8 @@ import me.vkryl.core.lambda.Filter;
 import me.vkryl.core.lambda.RunnableBool;
 import me.vkryl.core.lambda.RunnableData;
 import me.vkryl.core.util.FilteredIterator;
-import tgx.td.JSON;
-import tgx.td.Td;
+import me.vkryl.td.JSON;
+import me.vkryl.td.Td;
 
 public class TdlibManager implements Iterable<TdlibAccount>, UI.StateListener {
   // Util
@@ -211,18 +211,7 @@ public class TdlibManager implements Iterable<TdlibAccount>, UI.StateListener {
     if (StringUtils.isEmpty(text))
       return;
     performSyncTask(context, extras.accountId, "reply", (tdlib, onDone) -> {
-      TdApi.InputMessageReplyTo replyTo;
-      if (extras.needReply) {
-        long messageId = extras.messageIds[extras.messageIds.length - 1];
-        if (extras.forceExternalReply) {
-          replyTo = new TdApi.InputMessageReplyToExternalMessage(extras.chatId, messageId, null);
-        } else {
-          replyTo = new TdApi.InputMessageReplyToMessage(messageId, null);
-        }
-      } else {
-        replyTo = null;
-      }
-      tdlib.sendMessage(extras.chatId, extras.messageThreadId, replyTo, Td.newSendOptions(), new TdApi.InputMessageText(new TdApi.FormattedText(text.toString(), null), null, false), sendingMessage -> {
+      tdlib.sendMessage(extras.chatId, extras.messageThreadId, extras.needReply ? new TdApi.InputMessageReplyToMessage(extras.forceExternalReply ? extras.chatId : 0, extras.messageIds[extras.messageIds.length - 1], null) : null, Td.newSendOptions(), new TdApi.InputMessageText(new TdApi.FormattedText(text.toString(), null), null, false), sendingMessage -> {
         if (sendingMessage == null) {
           UI.showToast(R.string.NotificationReplyFailed, Toast.LENGTH_SHORT);
           if (onDone != null) {
@@ -2068,12 +2057,7 @@ public class TdlibManager implements Iterable<TdlibAccount>, UI.StateListener {
   }
 
   @NonNull
-  Set<Long> availableUserIdsSet (boolean isDebug) {
-    return availableUserIdsSet(isDebug ? Tdlib.Mode.DEBUG : Tdlib.Mode.NORMAL);
-  }
-
-  @NonNull
-  Set<Long> availableUserIdsSet (@Tdlib.Mode int instanceMode) {
+  long[] availableUserIds (@Tdlib.Mode int instanceMode) {
     SortedSet<Long> userIds = new TreeSet<>();
     for (TdlibAccount account : accounts) {
       if (!account.isUnauthorized() && account.tdlibInstanceMode() == instanceMode) {
@@ -2082,12 +2066,6 @@ public class TdlibManager implements Iterable<TdlibAccount>, UI.StateListener {
           userIds.add(knownUserId);
       }
     }
-    return userIds;
-  }
-
-  @NonNull
-  long[] availableUserIds (@Tdlib.Mode int instanceMode) {
-    Set<Long> userIds = availableUserIdsSet(instanceMode);
     if (userIds.isEmpty())
       return new long[0];
     long[] array = new long[userIds.size()];

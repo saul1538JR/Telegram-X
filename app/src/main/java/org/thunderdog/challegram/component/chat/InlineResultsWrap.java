@@ -77,7 +77,7 @@ import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.ChatId;
+import me.vkryl.td.ChatId;
 
 public class InlineResultsWrap extends FrameLayoutFix implements View.OnClickListener, StickerSmallView.StickerMovementCallback, InlineResultsAdapter.HeightProvider, FactorAnimator.Target, View.OnLongClickListener, TGLegacyManager.EmojiLoadListener, BaseView.CustomControllerProvider {
   private RecyclerView recyclerView;

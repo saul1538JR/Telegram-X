@@ -14,6 +14,7 @@
  */
 package org.thunderdog.challegram.navigation;
 
+import android.animation.Animator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
@@ -63,9 +64,9 @@ import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
-public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
+public class MenuMoreWrap extends LinearLayout implements Animated {
   public static final int ITEM_HEIGHT = 48;
   public static final int PADDING = 8;
 
@@ -112,11 +113,8 @@ public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
       Views.updateLayoutParams(this);
   }
 
-  public void init (@Nullable ThemeListenerList themeProvider) {
-    init(themeProvider, /* forceTheme */ null);
-  }
 
-  public void init (@Nullable ThemeListenerList themeProvider, @Nullable ThemeDelegate forcedTheme) {
+  public void init (@Nullable ThemeListenerList themeProvider, ThemeDelegate forcedTheme) {
     this.themeListeners = themeProvider;
     this.forcedTheme = forcedTheme;
 
@@ -165,7 +163,6 @@ public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
     }
   }
 
-  @Override
   public int getAnchorMode () {
     return anchorMode;
   }
@@ -416,7 +413,6 @@ public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
     super.onMeasure(MeasureSpec.makeMeasureSpec(getItemsWidth(), MeasureSpec.EXACTLY), heightMeasureSpec);
   }
 
-  @Override
   public int getItemsWidth () {
     int padding = Screen.dp(PADDING);
     int childCount = getChildCount();
@@ -436,12 +432,10 @@ public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
     this.shouldPivotBottom = shouldPivotBottom;
   }
 
-  @Override
   public boolean shouldPivotBottom () {
     return shouldPivotBottom;
   }
 
-  @Override
   public int getItemsHeight () {
     int itemHeight = Screen.dp(ITEM_HEIGHT);
     int padding = Screen.dp(PADDING);
@@ -454,6 +448,18 @@ public class MenuMoreWrap extends MenuMoreWrapAbstract implements Animated {
       }
     }
     return total + padding + padding;
+  }
+
+  public float getRevealRadius () {
+    return (float) Math.hypot(getItemsWidth(), getItemsHeight());
+  }
+
+  public void scaleIn (Animator.AnimatorListener listener) {
+    Views.animate(this, 1f, 1f, 1f, 135l, 10l, AnimatorUtils.DECELERATE_INTERPOLATOR, listener);
+  }
+
+  public void scaleOut (Animator.AnimatorListener listener) {
+    Views.animate(this, START_SCALE, START_SCALE, 0f, 120l, 0l, AnimatorUtils.ACCELERATE_INTERPOLATOR, listener);
   }
 
   private @Nullable Runnable pendingAction;

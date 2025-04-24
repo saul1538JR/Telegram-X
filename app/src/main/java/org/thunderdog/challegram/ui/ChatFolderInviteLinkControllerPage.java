@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,7 +35,6 @@ import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.charts.LayoutHelper;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.data.DoubleTextWrapper;
-import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.navigation.BackHeaderButton;
 import org.thunderdog.challegram.navigation.HeaderView;
 import org.thunderdog.challegram.navigation.ViewController;
@@ -70,7 +70,7 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
 
   private @ChatFolderInviteLinkController.Mode int mode = ChatFolderInviteLinkController.MODE_INVITE_LINK;
   private int chatFolderId = NO_CHAT_FOLDER_ID;
-  private TdApi.ChatFolderName chatFolderName;
+  private String chatFolderTitle;
   private long[] selectableChatIds = ArrayUtils.EMPTY_LONGS;
   private @Nullable String inviteLinkUrl;
   private @Nullable TdApi.ChatFolderInviteLinkInfo inviteLinkInfo;
@@ -87,7 +87,7 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
     super.setArguments(args);
     mode = args.mode;
     chatFolderId = args.chatFolderId;
-    chatFolderName = args.chatFolderName;
+    chatFolderTitle = args.chatFolderTitle;
     inviteLinkUrl = args.inviteLinkUrl;
     inviteLinkInfo = args.inviteLinkInfo;
     selectableChatIds = args.selectableChatIds;
@@ -136,7 +136,6 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
     updateActionButton();
 
     SeparatorView bottomShadowView = SeparatorView.simpleSeparator(context, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1f, Gravity.BOTTOM), false);
-    addThemeInvalidateListener(bottomShadowView);
     bottomShadowView.setAlignBottom();
     wrap.addView(bottomShadowView);
 
@@ -318,7 +317,7 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
 
   @Override
   public CharSequence getName () {
-    return TD.toCharSequence(chatFolderName);
+    return chatFolderTitle;
   }
 
   @Override
@@ -452,13 +451,21 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
     if (chatFolderId == NO_CHAT_FOLDER_ID) {
       if (!tdlib.canAddShareableFolder()) {
         UI.forceVibrateError(actionButton);
-        tdlib.ui().showLimitReachedInfo(this, actionButton, TdlibUi.PremiumLimit.SHAREABLE_FOLDER_COUNT);
+        if (tdlib.hasPremium()) {
+          showTooltip(actionButton, R.string.ShareableFoldersLimitReached, tdlib.addedShareableChatFolderCountMax());
+        } else {
+          tdlib.ui().showPremiumLimitInfo(this, actionButton, TdlibUi.PremiumLimit.SHAREABLE_FOLDER_COUNT);
+        }
         return;
       }
 
       if (!tdlib.canCreateChatFolder()) {
         UI.forceVibrateError(actionButton);
-        tdlib.ui().showLimitReachedInfo(this, actionButton, TdlibUi.PremiumLimit.CHAT_FOLDER_COUNT);
+        if (tdlib.hasPremium()) {
+          showTooltip(actionButton, R.string.ChatFolderLimitReached, tdlib.chatFolderCountMax());
+        } else {
+          tdlib.ui().showPremiumLimitInfo(this, actionButton, TdlibUi.PremiumLimit.CHAT_FOLDER_COUNT);
+        }
         return;
       }
     }
@@ -485,10 +492,23 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
       throw new IllegalStateException("mode = " + mode);
     }
     long[] leaveChatIds = selectedChatIds.toArray();
-    tdlib.deleteChatFolder(chatFolderId, leaveChatIds, () -> {
+    tdlib.send(new TdApi.DeleteChatFolder(chatFolderId, leaveChatIds), tdlib.typedOkHandler(() -> {
       UI.showToast(R.string.Done, Toast.LENGTH_SHORT);
-    });
+    }));
     parent.hidePopupWindow(true);
+  }
+
+  private void showTooltip (View view, @StringRes int markdownStringRes, Object... formatArgs) {
+    showTooltip(view, Lang.getMarkdownString(this, markdownStringRes, formatArgs));
+  }
+
+  private void showTooltip (View view, CharSequence text) {
+    context()
+      .tooltipManager()
+      .builder(view)
+      .controller(this)
+      .show(tdlib, text)
+      .hideDelayed();
   }
 
   private class Adapter extends SettingsAdapter {
@@ -522,7 +542,7 @@ public class ChatFolderInviteLinkControllerPage extends BottomSheetViewControlle
     @Override
     protected void setHeaderCheckBoxState (ListItem item, CheckBoxView checkBox, boolean isUpdate) {
       if (item.getId() == R.id.btn_check) {
-        checkBox.setChecked(!selectedChatIds.isEmpty(), isUpdate);
+        checkBox.setChecked(selectedChatIds.size() > 0, isUpdate);
         checkBox.setDisabled(selectableChatIds.length == 0, isUpdate);
         checkBox.setPartially(selectedChatIds.size() < selectableChatIds.length, isUpdate);
       } else {

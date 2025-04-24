@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.ObjectUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class ChatMembersSearcher {
   public static final int FILTER_TYPE_CONTACTS = 1;

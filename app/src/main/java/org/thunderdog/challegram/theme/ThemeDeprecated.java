@@ -18,6 +18,7 @@ import androidx.annotation.DrawableRes;
 
 import org.thunderdog.challegram.R;
 
+@Deprecated
 public class ThemeDeprecated {
   /*public static @DrawableRes int transparentSelector () {
     return *//*TGTheme.isDark() ? R.drawable.selector_dark :*//* R.drawable.item_selector;

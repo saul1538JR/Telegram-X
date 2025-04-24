@@ -90,8 +90,8 @@ import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.lambda.Destroyable;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class ForceTouchView extends FrameLayoutFix implements
   PopupLayout.AnimatedPopupProvider, FactorAnimator.Target,
@@ -228,7 +228,6 @@ public class ForceTouchView extends FrameLayoutFix implements
       }
 
       @Override
-      @SuppressWarnings("deprecation")
       public int getOpacity () {
         return PixelFormat.UNKNOWN;
       }
@@ -380,7 +379,6 @@ public class ForceTouchView extends FrameLayoutFix implements
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public int getOpacity () {
           return PixelFormat.UNKNOWN;
         }
@@ -445,7 +443,6 @@ public class ForceTouchView extends FrameLayoutFix implements
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public int getOpacity () {
           return PixelFormat.UNKNOWN;
         }
@@ -1278,9 +1275,9 @@ public class ForceTouchView extends FrameLayoutFix implements
   }
 
   private void setHeaderUser (TdApi.User user) {
-    headerView.setShowVerify(Td.isVerified(user));
-    headerView.setShowScam(Td.isScam(user));
-    headerView.setShowFake(Td.isFake(user));
+    headerView.setShowVerify(user.isVerified);
+    headerView.setShowScam(user.isScam);
+    headerView.setShowFake(user.isFake);
     headerView.setEmojiStatus(user);
     headerView.setText(TD.getUserName(user), tdlib.status().getPrivateChatSubtitle(user.id, user, false));
     setChatAvatar();

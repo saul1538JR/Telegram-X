@@ -24,7 +24,6 @@ import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.navigation.ViewController;
-import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibDelegate;
 import org.thunderdog.challegram.telegram.TdlibProvider;
 import org.thunderdog.challegram.telegram.TdlibUi;
@@ -85,10 +84,6 @@ public class FormattedText {
     return 0;
   }
 
-  public static FormattedText concat (String separator, FormattedText... texts) {
-    return concat(separator, separator, texts);
-  }
-
   public static FormattedText concat (String separator, String lastSeparator, FormattedText... texts) {
     if (texts == null || texts.length == 0) {
       return new FormattedText("");
@@ -122,16 +117,6 @@ public class FormattedText {
         entities.toArray(new TextEntity[0]) :
         null
     );
-  }
-
-  public static FormattedText customEmoji (Tdlib tdlib, String emoji, long customEmojiId) {
-    if (StringUtils.isEmpty(emoji)) {
-      throw new IllegalArgumentException(emoji);
-    }
-    final TextEntity[] entities = TextEntity.valueOf(tdlib, emoji, new TdApi.TextEntity[]{
-      new TdApi.TextEntity(0, emoji.length(), new TdApi.TextEntityTypeCustomEmoji(customEmojiId)),
-    }, null);
-    return new FormattedText(emoji, entities);
   }
 
   public FormattedText highlight (Highlight highlight) {

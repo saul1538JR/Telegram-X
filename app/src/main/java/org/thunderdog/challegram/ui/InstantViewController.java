@@ -72,16 +72,16 @@ import java.util.List;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class InstantViewController extends ViewController<InstantViewController.Args> implements Menu, TGLegacyManager.EmojiLoadListener, Text.ClickCallback, View.OnClickListener, View.OnLongClickListener, TGPlayerController.PlayListBuilder {
   public static class Args {
-    public final TdApi.LinkPreview linkPreview;
+    public final TdApi.WebPage webPage;
     public TdApi.WebPageInstantView instantView;
     public String anchorLink;
 
-    public Args (TdApi.LinkPreview linkPreview, TdApi.WebPageInstantView instantView, String anchorLink) {
-      this.linkPreview = linkPreview;
+    public Args (TdApi.WebPage webPage, TdApi.WebPageInstantView instantView, String anchorLink) {
+      this.webPage = webPage;
       this.instantView = instantView;
       this.anchorLink = anchorLink;
     }
@@ -140,10 +140,10 @@ public class InstantViewController extends ViewController<InstantViewController.
   @Override
   public void onMenuItemPressed (int id, View view) {
     if (id == R.id.menu_btn_forward) {
-      String link = getArgumentsStrict().linkPreview.url;
+      String link = getArgumentsStrict().webPage.url;
       ShareController c = new ShareController(context, tdlib);
       ShareController.Args args = new ShareController.Args(link);
-      args.setCustomCopyLinkAction(R.string.OpenInExternalApp, () -> UI.openUrl(getArgumentsStrict().linkPreview.url));
+      args.setCustomCopyLinkAction(R.string.OpenInExternalApp, () -> UI.openUrl(getArgumentsStrict().webPage.url));
       if (Strings.isValidLink(link)) {
         args.setExport(link);
       }
@@ -154,7 +154,7 @@ public class InstantViewController extends ViewController<InstantViewController.
 
   @Override
   public CharSequence getName () {
-    return getArgumentsStrict().linkPreview.siteName;
+    return getArgumentsStrict().webPage.siteName;
   }
 
   @Override
@@ -515,11 +515,11 @@ public class InstantViewController extends ViewController<InstantViewController.
   }
 
   public String getUrl () {
-    return getArgumentsStrict().linkPreview.url;
+    return getArgumentsStrict().webPage.url;
   }
 
   public String getDisplayUrl () {
-    return getArgumentsStrict().linkPreview.displayUrl;
+    return getArgumentsStrict().webPage.displayUrl;
   }
 
   @Nullable

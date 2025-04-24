@@ -151,8 +151,8 @@ import me.vkryl.core.lambda.RunnableData;
 import me.vkryl.core.lambda.RunnableInt;
 import me.vkryl.core.lambda.RunnableLong;
 import me.vkryl.core.reference.ReferenceList;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 // TODO separate Telegram-related stuff to TelegramViewController<T>. This will allow reusing navigation logic in other projects
 
@@ -282,10 +282,6 @@ public abstract class ViewController<T> implements Future<View>, ThemeChangeList
     ThemeListenerEntry entry;
     addThemeListener(entry = new ThemeListenerEntry(ThemeListenerEntry.MODE_TEXT_COLOR, colorId, view));
     return entry;
-  }
-
-  public final void addThemeCompoundDrawableColorListener (TextView view, @ColorId int colorId) {
-    addThemeListener(new ThemeListenerEntry(ThemeListenerEntry.MODE_COMPOUND_DRAWABLE_COLOR, colorId, view));
   }
 
   public final ThemeListenerEntry addOrUpdateThemeTextColorListener (Object view, @ColorId int colorId) {
@@ -1592,7 +1588,7 @@ public abstract class ViewController<T> implements Future<View>, ThemeChangeList
   }
 
   public MaterialEditTextGroup openInputAlert (CharSequence title, CharSequence placeholder, @StringRes int doneRes, @StringRes int cancelRes, @Nullable CharSequence value, @Nullable String defaultValue, InputAlertCallback callback, boolean hideKeyboard, RunnableData<ViewGroup> layoutOverride, ThemeDelegate forcedTheme) {
-    final MaterialEditTextGroup inputView = new MaterialEditTextGroup(context, tdlib);
+    final MaterialEditTextGroup inputView = new MaterialEditTextGroup(context);
     inputView.setHint(placeholder);
     inputView.getEditText().setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS);
     if (!StringUtils.isEmpty(value)) {
@@ -1878,7 +1874,6 @@ public abstract class ViewController<T> implements Future<View>, ThemeChangeList
     showSettings(new SettingsWrapBuilder(id).setRawItems(rawItems).setIntDelegate(delegate).setAllowResize(allowResize));
   }
 
-  @SuppressWarnings("deprecation")
   public final @Nullable SettingsWrap showSettings (final SettingsWrapBuilder b) {
     if (isStackLocked()) {
       Log.i("Ignoring showSettings because stack is locked");
@@ -2023,7 +2018,7 @@ public abstract class ViewController<T> implements Future<View>, ThemeChangeList
       protected void setValuedSetting (ListItem item, SettingView view, boolean isUpdate) {
         switch (item.getViewType()) {
           case ListItem.TYPE_CHECKBOX_OPTION_DOUBLE_LINE: {
-            view.setData(item.getCharSequenceValue());
+            view.setData(item.getStringValue());
             break;
           }
           case ListItem.TYPE_CHECKBOX_OPTION:
@@ -2820,7 +2815,6 @@ public abstract class ViewController<T> implements Future<View>, ThemeChangeList
         public void setColorFilter (@Nullable ColorFilter colorFilter) { }
 
         @Override
-        @SuppressWarnings("deprecation")
         public int getOpacity () {
           return PixelFormat.UNKNOWN;
         }

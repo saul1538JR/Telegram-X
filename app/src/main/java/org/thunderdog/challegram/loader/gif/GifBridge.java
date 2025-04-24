@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class GifBridge {
   private static GifBridge instance;

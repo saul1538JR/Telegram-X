@@ -67,7 +67,7 @@ import me.vkryl.core.collection.IntList;
 import me.vkryl.core.collection.LongList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class StickersListController extends ViewController<StickersListController.StickerSetProvider> implements
   Menu, StickerSmallView.StickerMovementCallback, Client.ResultHandler,
@@ -841,7 +841,7 @@ public class StickersListController extends ViewController<StickersListControlle
   }
 
   @Override
-  public void buildMenuStickerPreview (ArrayList<StickerPreviewView.MenuItem> menuItems, @NonNull TGStickerObj sticker) {
+  public void buildMenuStickerPreview (ArrayList<StickerPreviewView.MenuItem> menuItems, @NonNull TGStickerObj sticker, @NonNull StickerSmallView stickerSmallView) {
     final NavigationController navigation = context.navigation();
     final ViewController<?> c = navigation != null ? navigation.getCurrentStackItem() : null;
     final boolean canWriteMessages = c instanceof MessagesController && ((MessagesController) c).canWriteMessages();
@@ -861,12 +861,8 @@ public class StickersListController extends ViewController<StickersListControlle
   }
 
   @Override
-  public void onMenuStickerPreviewClick (View v, ViewController<?> context, @NonNull TGStickerObj sticker, @Nullable StickerSmallView stickerSmallView) {
+  public void onMenuStickerPreviewClick (View v, ViewController<?> context, @NonNull TGStickerObj sticker, @NonNull StickerSmallView stickerSmallView) {
     final int viewId = v.getId();
-    if (stickerSmallView == null) {
-      return;
-    }
-
     if (viewId == R.id.btn_send) {
       if (stickerSmallView.onSendSticker(v, sticker, Td.newSendOptions())) {
         stickerSmallView.closePreviewIfNeeded();

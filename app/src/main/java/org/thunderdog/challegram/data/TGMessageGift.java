@@ -28,7 +28,7 @@ import org.thunderdog.challegram.tool.Screen;
 import org.thunderdog.challegram.tool.Strings;
 import org.thunderdog.challegram.tool.UI;
 
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class TGMessageGift extends TGMessageGiveawayBase {
   private final TdApi.MessagePremiumGiftCode premiumGiftCode;

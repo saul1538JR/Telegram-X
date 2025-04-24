@@ -45,7 +45,6 @@ import org.thunderdog.challegram.tool.Strings;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.tool.Views;
 import org.thunderdog.challegram.util.HeightChangeListener;
-import org.thunderdog.challegram.v.EditText;
 
 import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.BoolAnimator;
@@ -54,7 +53,7 @@ import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
 
-@SuppressWarnings("ViewConstructor")
+@SuppressWarnings("NullableProblems")
 public class MaterialEditTextGroup extends FrameLayoutFix implements View.OnFocusChangeListener, FactorAnimator.Target, TextWatcher, TextView.OnEditorActionListener {
   public interface EmptyListener {
     void onTextEmptyStateChanged (MaterialEditTextGroup v, boolean isEmpty);
@@ -83,14 +82,14 @@ public class MaterialEditTextGroup extends FrameLayoutFix implements View.OnFocu
   private @Nullable FocusListener focusListener;
   private @Nullable HeightChangeListener heightChangeListener;
 
-  public MaterialEditTextGroup (Context context, Tdlib tdlib) {
+  public MaterialEditTextGroup (Context context) {
     super(context);
-    init(context, tdlib, true);
+    init(context, true);
   }
 
-  public MaterialEditTextGroup (Context context, Tdlib tdlib, boolean needHint) {
+  public MaterialEditTextGroup (Context context, boolean needHint) {
     super(context);
-    init(context, tdlib, needHint);
+    init(context, needHint);
   }
 
   private void setIsNotEmpty (boolean isNotEmpty) {
@@ -138,13 +137,13 @@ public class MaterialEditTextGroup extends FrameLayoutFix implements View.OnFocu
     this.nextCallback = forceNextButton;
   }
 
-  private void init (Context context, Tdlib tdlib, boolean needHint) {
+  private void init (Context context, boolean needHint) {
     FrameLayoutFix.LayoutParams params;
 
     params = FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     params.topMargin = Screen.dp(needHint ? 20f : 8f);
 
-    editText = new MaterialEditText(context, tdlib) {
+    editText = new MaterialEditText(context) {
       @Override
       public InputConnection createInputConnection (EditorInfo outAttrs) {
         InputConnection conn = super.createInputConnection(outAttrs);
@@ -423,7 +422,7 @@ public class MaterialEditTextGroup extends FrameLayoutFix implements View.OnFocu
     }
   }
 
-  private CharSequence lastInput;
+  private String lastInput;
   private boolean ignoreChanges;
 
   @Override
@@ -443,14 +442,15 @@ public class MaterialEditTextGroup extends FrameLayoutFix implements View.OnFocu
     }
 
     updateRemainingCharCount();
-    if (lastInput == null || !lastInput.equals(s)) {
-      this.lastInput = EditText.nonModifiableCopy(s);
+    String str = s.toString();
+    if (lastInput == null || !lastInput.equals(str)) {
+      this.lastInput = str;
       if (useTextChangeAnimations && hasFocus) {
-        forceAlphaFactor(StringUtils.trim(s).length() > 0 ? 1f : 0f);
+        forceAlphaFactor(str.trim().length() > 0 ? 1f : 0f);
       }
-      setIsNotEmpty(!StringUtils.isEmpty(s));
+      setIsNotEmpty(!str.isEmpty());
       if (textListener != null) {
-        textListener.onTextChanged(this, s);
+        textListener.onTextChanged(this, str);
       }
     }
   }

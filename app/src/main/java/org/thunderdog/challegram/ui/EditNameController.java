@@ -49,7 +49,7 @@ import java.util.List;
 import me.vkryl.android.text.CodePointCountFilter;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.StringUtils;
-import tgx.td.TdConstants;
+import me.vkryl.td.TdConstants;
 
 public class EditNameController extends EditBaseController<EditNameController.Args> implements SettingsAdapter.TextChangeListener, Client.ResultHandler, TdlibCache.UserDataChangeListener, View.OnClickListener {
   @Retention(RetentionPolicy.SOURCE)
@@ -388,8 +388,7 @@ public class EditNameController extends EditBaseController<EditNameController.Ar
   }
 
   @Override
-  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v) {
-    String text = v.getText().toString();
+  public void onTextChanged (int id, ListItem item, MaterialEditTextGroup v, String text) {
     if (id == R.id.edit_first_name) {
       firstName.setStringValue(text);
       updateDoneState();

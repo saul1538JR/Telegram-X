@@ -17,21 +17,23 @@ package org.thunderdog.challegram.helper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.drinkless.tdlib.Client;
 import org.drinkless.tdlib.TdApi;
+import org.thunderdog.challegram.Log;
 import org.thunderdog.challegram.data.InlineResult;
 import org.thunderdog.challegram.data.InlineResultCommand;
 import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.data.TGMessageBotInfo;
 import org.thunderdog.challegram.telegram.TdlibCache;
+import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.ui.MessagesController;
 
 import java.util.ArrayList;
 
 import me.vkryl.core.StringUtils;
-import tgx.td.ChatId;
-import tgx.td.data.MessageWithProperties;
+import me.vkryl.td.ChatId;
 
-public class BotHelper implements Runnable, InlineSearchContext.CommandListProvider, TdlibCache.UserDataChangeListener, TdlibCache.BasicGroupDataChangeListener, TdlibCache.SupergroupDataChangeListener {
+public class BotHelper implements Client.ResultHandler, Runnable, InlineSearchContext.CommandListProvider, TdlibCache.UserDataChangeListener, TdlibCache.BasicGroupDataChangeListener, TdlibCache.SupergroupDataChangeListener {
   private static final int TYPE_PRIVATE = 0;
   private static final int TYPE_GROUP = 1;
   private static final int TYPE_SUPERGROUP = 2;
@@ -283,27 +285,15 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
 
   private void loadReplyMarkup (long messageId) {
     if (processedMarkupMessageId == 0 && messageId != 0) {
-      loadMessage(chatId, messageId);
+      context.tdlib().client().send(new TdApi.GetMessage(chatId, messageId), this);
     }
-  }
-
-  private void loadMessage (long chatId, long messageId) {
-    context.tdlib().send(new TdApi.GetMessage(chatId, messageId), (message, error) -> {
-      if (message != null) {
-        context.tdlib().send(new TdApi.GetMessageProperties(chatId, messageId), (properties, error1) -> {
-          if (properties != null) {
-            context.tdlib().uiExecute(() -> processReplyMarkup(new MessageWithProperties(message, properties), true));
-          }
-        });
-      }
-    });
   }
 
   public void updateReplyMarkup (long chatId, long messageId) {
     if (messageId == 0) {
       context.tdlib().uiExecute(() -> processReplyMarkup(null, true));
     } else {
-      loadMessage(chatId, messageId);
+      context.tdlib().client().send(new TdApi.GetMessage(chatId, messageId), this);
     }
   }
 
@@ -322,18 +312,18 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
   }
 
   private long processedMarkupMessageId;
-  private MessageWithProperties lastReplyMarkup;
+  private TdApi.Message lastReplyMarkup;
 
-  private void processReplyMarkup (MessageWithProperties message, boolean remember) {
+  private void processReplyMarkup (TdApi.Message message, boolean remember) {
     if (remember) {
       this.lastReplyMarkup = message;
-      if (isForcelyHidden || (message != null && shouldHideMarkup(message.message.chatId))) {
+      if (isForcelyHidden || (message != null && shouldHideMarkup(message.chatId))) {
         isForcelyHidden = true;
         message = null;
       }
     }
-    TdApi.ReplyMarkup markup = message != null ? message.message.replyMarkup : null;
-    long messageId = message == null ? 0 : message.message.id;
+    TdApi.ReplyMarkup markup = message != null ? message.replyMarkup : null;
+    long messageId = message == null ? 0 : message.id;
     if ((flags & FLAG_DESTROYED) != 0) return;
     if (messageId > processedMarkupMessageId) {
       processedMarkupMessageId = messageId;
@@ -374,11 +364,11 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
   private void processHideKeyboard (long messageId, boolean personal) {
     context.hideKeyboard(personal);
     if (messageId != 0) {
-      context.tdlib().send(new TdApi.DeleteChatReplyMarkup(chatId, messageId), context.tdlib().typedOkHandler());
+      context.tdlib().client().send(new TdApi.DeleteChatReplyMarkup(chatId, messageId), this);
     }
   }
 
-  private void processForceReply (MessageWithProperties message, boolean personal) {
+  private void processForceReply (TdApi.Message message, boolean personal) {
     if (personal) {
       context.showKeyboard();
       context.showReply(message, null, false, false);
@@ -386,7 +376,7 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
       context.showReply(message, null, false, false);
     }
     if (message != null) {
-      context.tdlib().send(new TdApi.DeleteChatReplyMarkup(chatId, message.message.id), context.tdlib().typedOkHandler());
+      context.tdlib().client().send(new TdApi.DeleteChatReplyMarkup(chatId, message.id), this);
     }
   }
 
@@ -396,7 +386,7 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
 
   public void onDestroyKeyboard (long messageId) {
     if (this.processedMarkupMessageId == messageId) {
-      context.tdlib().send(new TdApi.DeleteChatReplyMarkup(chatId, messageId), context.tdlib().typedOkHandler());
+      context.tdlib().client().send(new TdApi.DeleteChatReplyMarkup(chatId, messageId), this);
     }
   }
 
@@ -426,7 +416,27 @@ public class BotHelper implements Runnable, InlineSearchContext.CommandListProvi
     }
   }
 
-  private boolean isDestroyed () {
-    return (flags & FLAG_DESTROYED) != 0;
+  @Override
+  public void onResult (TdApi.Object object) {
+    if ((flags & FLAG_DESTROYED) != 0) return;
+
+    switch (object.getConstructor()) {
+      case TdApi.Ok.CONSTRUCTOR: {
+        break;
+      }
+      case TdApi.Message.CONSTRUCTOR: {
+        final TdApi.Message message = (TdApi.Message) object;
+        context.tdlib().uiExecute(() -> processReplyMarkup(message, true));
+        break;
+      }
+      case TdApi.Error.CONSTRUCTOR: {
+        if (type != TYPE_SUPERGROUP) {
+          UI.showError(object);
+        } else {
+          Log.w("Cannot get bots for supergroup: %s", TD.toErrorString(object));
+        }
+        break;
+      }
+    }
   }
 }

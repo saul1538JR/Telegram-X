@@ -61,7 +61,7 @@ import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.MathUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class AudioController extends BasePlaybackController implements TGAudio.PlayListener, TGPlayerController.TrackListChangeListener, FactorAnimator.Target {
   private final TdlibManager context;
@@ -368,7 +368,6 @@ public class AudioController extends BasePlaybackController implements TGAudio.P
     ExoPlayer exoPlayer = this.exoPlayer = U.newExoPlayer(UI.getAppContext(), true);
     exoPlayer.addListener(this);
     setExoPlayerParameters();
-    setExoPlayerSpeed();
     exoPlayer.setVolume(volume);
     switch (TGPlayerController.getPlayRepeatFlag(playFlags)) {
       case TGPlayerController.PLAY_FLAG_REPEAT:
@@ -562,7 +561,9 @@ public class AudioController extends BasePlaybackController implements TGAudio.P
 
   @Override
   public void onPlaybackSpeedChanged (int newSpeed) {
-    setExoPlayerSpeed(newSpeed);
+    if (playbackMode == PLAYBACK_MODE_EXOPLAYER_LIST && exoPlayer != null) {
+      exoPlayer.setPlaybackParameters(TGPlayerController.newPlaybackParameters(isPlayingVoice(), newSpeed));
+    }
   }
 
   @Override
@@ -1070,16 +1071,6 @@ public class AudioController extends BasePlaybackController implements TGAudio.P
   private void setExoPlayerParameters () {
     if (exoPlayer != null) {
       context.player().proximityManager().modifyExoPlayer(exoPlayer, C.AUDIO_CONTENT_TYPE_MUSIC);
-    }
-  }
-
-  private void setExoPlayerSpeed () {
-    setExoPlayerSpeed (Settings.instance().getPlaybackSpeed());
-  }
-
-  private void setExoPlayerSpeed (int speed) {
-    if (exoPlayer != null) {
-      exoPlayer.setPlaybackParameters(TGPlayerController.newPlaybackParameters(false, speed));
     }
   }
 

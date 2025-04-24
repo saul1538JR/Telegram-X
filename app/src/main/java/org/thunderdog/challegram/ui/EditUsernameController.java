@@ -60,9 +60,9 @@ import me.vkryl.android.text.CodePointCountFilter;
 import me.vkryl.android.widget.FrameLayoutFix;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.CancellableRunnable;
-import tgx.td.ChatId;
-import tgx.td.Td;
-import tgx.td.TdConstants;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
+import me.vkryl.td.TdConstants;
 
 public class EditUsernameController extends EditBaseController<EditUsernameController.Args> implements SettingsAdapter.TextChangeListener, View.OnClickListener {
   public static class Args {
@@ -306,8 +306,7 @@ public class EditUsernameController extends EditBaseController<EditUsernameContr
   }
 
   @Override
-  public void onTextChanged (int id, ListItem ite, MaterialEditTextGroup v) {
-    String username = v.getText().toString();
+  public void onTextChanged (int id, ListItem ite, MaterialEditTextGroup v, String username) {
     if (currentUsernames.editableUsername.equals(username)) {
       return;
     }

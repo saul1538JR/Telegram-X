@@ -60,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 import me.vkryl.android.util.ClickHelper;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.lambda.Filter;
-import tgx.td.MessageId;
+import me.vkryl.td.MessageId;
 
 abstract class TGMessageServiceImpl extends TGMessage {
   protected TGMessageServiceImpl (MessagesManager manager, TdApi.Message msg) {
@@ -188,6 +188,11 @@ abstract class TGMessageServiceImpl extends TGMessage {
   }
 
   @Override
+  public boolean canBeReacted () {
+    return false;
+  }
+
+  @Override
   public boolean canSwipe () {
     return false;
   }
@@ -309,9 +314,6 @@ abstract class TGMessageServiceImpl extends TGMessage {
 
   @Override
   public boolean onTouchEvent (MessageView view, MotionEvent e) {
-    if (super.onTouchEvent(view, e)) {
-      return true;
-    }
     boolean res = displayText != null && displayText.onTouchEvent(view, e);
     return helper.onTouchEvent(view, e) || res;
   }
@@ -681,7 +683,7 @@ abstract class TGMessageServiceImpl extends TGMessage {
   protected final class InvoiceArgument extends MessageArgument {
     public InvoiceArgument (TdApi.Message message) {
       super(message, new TdApi.FormattedText(
-        ((TdApi.MessageInvoice) message.content).productInfo.title,
+        ((TdApi.MessageInvoice) message.content).title,
         null
       ));
     }

@@ -81,8 +81,8 @@ import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.RunnableBool;
 import me.vkryl.core.unit.ByteUnit;
-import tgx.td.ChatPosition;
-import tgx.td.Td;
+import me.vkryl.td.ChatPosition;
+import me.vkryl.td.Td;
 
 public class SettingsBugController extends RecyclerViewController<SettingsBugController.Args> implements
   View.OnClickListener,
@@ -114,7 +114,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
   public static class Args {
     public final @Section int section;
     public final Crash crash;
-    private int testerLevel = Tdlib.TesterLevel.NONE;
+    private int testerLevel = Tdlib.TESTER_LEVEL_NONE;
     private boolean mainCrash;
 
     public Args (@Section int section) {
@@ -147,7 +147,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
   }
 
   private @Section int section = Section.MAIN;
-  private int testerLevel = Tdlib.TesterLevel.NONE;
+  private int testerLevel = Tdlib.TESTER_LEVEL_NONE;
   private Crash crash;
   private boolean isMainCrash;
 
@@ -155,7 +155,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
   public void setArguments (Args args) {
     super.setArguments(args);
     this.section = args != null ? args.section : Section.MAIN;
-    this.testerLevel = args != null ? args.testerLevel : Tdlib.TesterLevel.NONE;
+    this.testerLevel = args != null ? args.testerLevel : Tdlib.TESTER_LEVEL_NONE;
     this.crash = args != null ? args.crash : null;
     this.isMainCrash = args != null && args.mainCrash;
   }
@@ -208,7 +208,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
   public boolean restoreInstanceState (Bundle in, String keyPrefix) {
     super.restoreInstanceState(in, keyPrefix);
     int section = in.getInt(keyPrefix + "section", Section.MAIN);
-    int testerLevel = in.getInt(keyPrefix + "level", Tdlib.TesterLevel.NONE);
+    int testerLevel = in.getInt(keyPrefix + "level", Tdlib.TESTER_LEVEL_NONE);
     if (section != Section.EXPERIMENTS) {
       return false;
     }
@@ -735,17 +735,18 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
         break;
       }
       case Section.EXPERIMENTS: {
-        if (testerLevel >= Tdlib.TesterLevel.TESTER || Settings.instance().isExperimentEnabled(Settings.EXPERIMENT_FLAG_SHOW_PEER_IDS)) {
-          if (!items.isEmpty()) {
-            items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
-          }
+        if (!items.isEmpty()) {
+          items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
+        }
+        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_experiment, 0, R.string.Experiment_ChatFolders).setLongValue(Settings.EXPERIMENT_FLAG_ENABLE_FOLDERS));
+        items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
+        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Lang.getMarkdownStringSecure(this, R.string.Experiment_ChatFoldersInfo)));
+
+        if (testerLevel >= Tdlib.TESTER_LEVEL_TESTER || Settings.instance().isExperimentEnabled(Settings.EXPERIMENT_FLAG_SHOW_PEER_IDS)) {
+          items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_experiment, 0, R.string.Experiment_PeerIds).setLongValue(Settings.EXPERIMENT_FLAG_SHOW_PEER_IDS));
           items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
           items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, R.string.Experiment_PeerIdsInfo));
-        }
-
-        if (items.isEmpty()) {
-          items.add(new ListItem(ListItem.TYPE_EMPTY, 0, 0, R.string.ExperimentalSettingsUnavailable));
         }
 
         break;
@@ -767,26 +768,24 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
           items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_databaseStats, 0, "Other internal statistics", false));
 
-          if (testerLevel >= Tdlib.TesterLevel.ADMIN) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN) {
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_stressTest, 0, "Stress test TDLib restarts", false));
           }
-          if (testerLevel >= Tdlib.TesterLevel.ADMIN || Settings.instance().forceTdlibRestart()) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN || Settings.instance().forceTdlibRestart()) {
             if (items.size() > initialSize)
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_forceTdlibRestarts, 0, "Force TDLib restarts", Settings.instance().forceTdlibRestart()));
           }
 
-          if (testerLevel >= Tdlib.TesterLevel.DEVELOPER) {
-            items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-            items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_attest, 0, "Test attest", false));
+          if (testerLevel >= Tdlib.TESTER_LEVEL_DEVELOPER) {
             if (tdlib.isAuthorized()) {
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
               items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_sendAllChangeLogs, 0, "Send all change logs", false));
             }
           }
 
-          if (testerLevel >= Tdlib.TesterLevel.CREATOR) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_CREATOR) {
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_copyLanguageCodes, 0, "Copy language codes list", false));
           }
@@ -801,7 +800,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
         items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_dropSavedScrollPositions, 0, "Drop saved scroll positions", false));
 
-        if (testerLevel >= Tdlib.TesterLevel.CREATOR || Settings.instance().dontReadMessages()) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_CREATOR || Settings.instance().dontReadMessages()) {
           if (items.size() > initialSize)
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_dontReadMessages, 0, "Don't read messages", false));
@@ -823,43 +822,41 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
           items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_dropHidden, 0, "Drop hidden notification identifiers", false));
         }
 
-        if (testerLevel >= Tdlib.TesterLevel.READER || Settings.instance().needHidePhoneNumber()) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_READER || Settings.instance().needHidePhoneNumber()) {
           if (items.size() > initialSize)
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_replacePhoneNumber, 0, "Hide phone number in drawer", Settings.instance().needHidePhoneNumber()));
         }
-        if (testerLevel >= Tdlib.TesterLevel.READER || Settings.instance().forceTcpInCalls()) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_READER || Settings.instance().forceTcpInCalls()) {
           if (items.size() > initialSize)
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_forceTcpInCalls, 0, "Force TCP in calls", Settings.instance().forceTcpInCalls()));
         }
-        if (testerLevel >= Tdlib.TesterLevel.ADMIN || Settings.instance().forceDisableNetwork()) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN || Settings.instance().forceDisableNetwork()) {
           if (items.size() > initialSize)
             items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_disableNetwork, 0, "Force disable network", Settings.instance().forceDisableNetwork()));
         }
         if (Config.QR_AVAILABLE) {
-          if (testerLevel >= Tdlib.TesterLevel.ADMIN || Settings.instance().needDisableQrProcessing()) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN || Settings.instance().needDisableQrProcessing()) {
             if (items.size() > initialSize)
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_disableQrProcess, 0, "Disable QR processing", Settings.instance().needDisableQrProcessing()));
           }
-          if (testerLevel >= Tdlib.TesterLevel.ADMIN || Settings.instance().needForceZxingQrProcessing()) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN || Settings.instance().needForceZxingQrProcessing()) {
             if (items.size() > initialSize)
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_forceQrZxing, 0, "Force ZXing in QR scanner", Settings.instance().needForceZxingQrProcessing()));
           }
-          if (testerLevel >= Tdlib.TesterLevel.ADMIN || Settings.instance().needShowQrRegions()) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN || Settings.instance().needShowQrRegions()) {
             if (items.size() > initialSize)
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_secret_debugQrRegions, 0, "Show QR scanner UI regions", Settings.instance().needForceZxingQrProcessing()));
           }
-          if (testerLevel >= Tdlib.TesterLevel.TESTER) {
+          if (testerLevel >= Tdlib.TESTER_LEVEL_TESTER) {
             if (items.size() > initialSize)
               items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
             items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_qrTest, 0, "Test QR scanner", false));
-            items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-            items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_secret_testPrompts, 0, "Show prompts on next app launch", false));
           }
         }
 
@@ -874,7 +871,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Tests (crash when failed)", false));
         items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
         items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_test_database, 0, "Test database", false));
-        if (testerLevel >= Tdlib.TesterLevel.ADMIN) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_ADMIN) {
           items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_test_recovery, 0, "Crash & enter recovery (uncaught exception)", false).setData(new Crash.Builder("Test error", Thread.currentThread(), Log.generateException())));
           items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
@@ -925,7 +922,7 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
         items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         items.add(new ListItem(ListItem.TYPE_VALUED_SETTING_COMPACT, R.id.btn_tdlib_viewLogsOld, 0, TdlibManager.getLogFile(true).getName(), false));
         Settings.TdlibLogSettings settings = Settings.instance().getLogSettings();
-        if (testerLevel >= Tdlib.TesterLevel.DEVELOPER || settings.needAndroidLog()) {
+        if (testerLevel >= Tdlib.TESTER_LEVEL_DEVELOPER || settings.needAndroidLog()) {
           items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_tdlib_androidLogs, 0, R.string.DebugLogcatOnly, false));
         }
@@ -982,12 +979,12 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
                   }
                   if (i == -1)
                     return;
-                  if (level > Tdlib.TesterLevel.NONE) {
+                  if (level > Tdlib.TESTER_LEVEL_NONE) {
                     adapter.getItems().add(i + 1, new ListItem(ListItem.TYPE_SEPARATOR_FULL));
                     adapter.getItems().add(i + 2, new ListItem(ListItem.TYPE_SETTING, R.id.btn_testingUtils, 0, R.string.TestMode, false));
                     adapter.notifyItemRangeInserted(i + 1, 2);
                     i += 2;
-                    if (level <= Tdlib.TesterLevel.READER) {
+                    if (level == Tdlib.TESTER_LEVEL_READER) {
                       adapter.addItem(i + 2, new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, Strings.buildMarkdown(this, "To unlock more Testing Utilities you have to be a member of @tgandroidtests.", null), false));
                     }
                   } else {
@@ -1252,8 +1249,6 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
     } else if (viewId == R.id.btn_secret_disableNetwork) {
       Settings.instance().setDisableNetwork(adapter.toggleView(v));
       TdlibManager.instance().watchDog().letsHelpDoge();
-    } else if (viewId == R.id.btn_secret_testPrompts) {
-      Settings.instance().forceRevokeAllFeaturePrompts();
     } else if (viewId == R.id.btn_secret_forceTdlibRestarts) {
       TdlibManager.instance().setForceTdlibRestarts(adapter.toggleView(v));
     } else if (viewId == R.id.btn_secret_forceTcpInCalls) {
@@ -1387,12 +1382,6 @@ public class SettingsBugController extends RecyclerViewController<SettingsBugCon
       });
     } else if (viewId == R.id.btn_secret_resetLocalNotificationSettings) {
       tdlib.notifications().resetNotificationSettings(true);
-    } else if (viewId == R.id.btn_secret_attest) {
-      tdlib.requestPlayIntegrity(-1, StringUtils.random("0123456789abcdef", 32), (result, isError) -> {
-        runOnUiThread(() -> {
-          openAlert(R.string.AppName, result);
-        });
-      });
     } else if (viewId == R.id.btn_secret_databaseStats) {
       String stats = Settings.instance().pmc().getProperty("leveldb.stats") + "\n\n" + "Memory usage: " + Settings.instance().pmc().getProperty("leveldb.approximate-memory-usage");
       TextController c = new TextController(context, tdlib);

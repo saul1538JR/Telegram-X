@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.MathUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class ImageGalleryFile extends ImageFile implements Comparable<ImageGalleryFile> {
   private static int CURRENT_ID = ImageFile.GALLERY_START_ID;

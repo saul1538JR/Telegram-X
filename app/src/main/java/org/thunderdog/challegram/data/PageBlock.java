@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import me.vkryl.android.util.MultipleViewProvider;
 import me.vkryl.android.util.ViewProvider;
 import me.vkryl.android.widget.FrameLayoutFix;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public abstract class PageBlock {
   protected final ViewController<?> context;

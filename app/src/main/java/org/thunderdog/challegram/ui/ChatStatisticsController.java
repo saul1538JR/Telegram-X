@@ -57,7 +57,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.collection.IntList;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class ChatStatisticsController extends RecyclerViewController<ChatStatisticsController.Args> implements View.OnClickListener, View.OnLongClickListener {
   public static class Args {
@@ -487,28 +487,25 @@ public class ChatStatisticsController extends RecyclerViewController<ChatStatist
     };
     Tdlib.ResultHandler<TdApi.Message> messageHandler = (message, error) -> {
       if (message != null) {
-        tdlib.getMessageProperties(message, properties -> {
-          if (message.mediaAlbumId != 0) {
-            if (!interactionMessageAlbums.containsKey(message.mediaAlbumId)) {
-              interactionMessageAlbums.put(message.mediaAlbumId, new ArrayList<>());
-            }
-            interactionMessageAlbums.get(message.mediaAlbumId).add(message);
+        if (message.mediaAlbumId != 0) {
+          if (!interactionMessageAlbums.containsKey(message.mediaAlbumId)) {
+            interactionMessageAlbums.put(message.mediaAlbumId, new ArrayList<>());
           }
+          interactionMessageAlbums.get(message.mediaAlbumId).add(message);
+        }
 
-          if (properties.canGetStatistics && (message.mediaAlbumId == 0 || currentMediaAlbumId != message.mediaAlbumId)) {
-            currentMediaAlbumId = message.mediaAlbumId;
-            // interactionMessageAlbums should already be loaded at this moment
-            TdApi.Message suitableMessage = message.mediaAlbumId == 0 ? message : sortInteractions(message.mediaAlbumId);
-            interactionMessages.add(new MessageInteractionInfoContainer(
-              suitableMessage,
-              interactions[interactions.length - remaining.get()]
-            ));
-          }
-          after.run();
-        });
-      } else {
-        after.run();
+        if (message.canGetStatistics && (message.mediaAlbumId == 0 || currentMediaAlbumId != message.mediaAlbumId)) {
+          currentMediaAlbumId = message.mediaAlbumId;
+          // interactionMessageAlbums should already be loaded at this moment
+          TdApi.Message suitableMessage = message.mediaAlbumId == 0 ? message : sortInteractions(message.mediaAlbumId);
+          interactionMessages.add(new MessageInteractionInfoContainer(
+            suitableMessage,
+            interactions[interactions.length - remaining.get()]
+          ));
+        }
       }
+
+      after.run();
     };
 
     for (TdApi.ChatStatisticsInteractionInfo interaction : interactions) {

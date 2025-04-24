@@ -80,7 +80,6 @@ import org.thunderdog.challegram.widget.AvatarView;
 import org.thunderdog.challegram.widget.BetterChatView;
 import org.thunderdog.challegram.widget.ChartLayout;
 import org.thunderdog.challegram.widget.CheckBoxView;
-import org.thunderdog.challegram.widget.CustomEmojiTextView;
 import org.thunderdog.challegram.widget.CustomTextView;
 import org.thunderdog.challegram.widget.DoubleTextView;
 import org.thunderdog.challegram.widget.DoubleTextViewWithIcon;
@@ -601,9 +600,6 @@ public class SettingHolder extends RecyclerView.ViewHolder {
       case ListItem.TYPE_PADDING: {
         PaddingView paddingView = new PaddingView(context);
         paddingView.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        if (themeProvider != null) {
-          themeProvider.addThemeInvalidateListener(paddingView);
-        }
         return new SettingHolder(paddingView);
       }
       case ListItem.TYPE_SEPARATOR_FULL:
@@ -1061,7 +1057,7 @@ public class SettingHolder extends RecyclerView.ViewHolder {
         if (viewType != ListItem.TYPE_EDITTEXT_POLL_OPTION_ADD && viewType != ListItem.TYPE_EDITTEXT_POLL_OPTION)
           frameLayout.setPadding(Screen.dp(16f), paddingTop, Screen.dp(16f), Screen.dp(8f));
 
-        MaterialEditTextGroup editText = new MaterialEditTextGroup(context, tdlib, needHint);
+        MaterialEditTextGroup editText = new MaterialEditTextGroup(context, needHint);
         editText.applyRtl(Lang.rtl());
         editText.addThemeListeners(themeProvider);
         editText.setTextListener(adapter);
@@ -1226,7 +1222,7 @@ public class SettingHolder extends RecyclerView.ViewHolder {
           @Override
           public void getItemOffsets (Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             RecyclerView.ViewHolder holder = parent.getChildViewHolder(view);
-            if (holder == null || holder.getBindingAdapterPosition() != 0) {
+            if (holder == null || holder.getAdapterPosition() != 0) {
               outRect.left = 0;
               return;
             }
@@ -1287,7 +1283,7 @@ public class SettingHolder extends RecyclerView.ViewHolder {
       case ListItem.TYPE_HEADER_PADDED: {
         final boolean isRtl = Lang.rtl();
 
-        TextView textView = new CustomEmojiTextView(context, tdlib);
+        TextView textView = new NoScrollTextView(context);
         textView.setGravity(Lang.gravity(Gravity.CENTER_VERTICAL));
         int paddingTop = viewType == ListItem.TYPE_HEADER_MULTILINE ? Screen.dp(6f) : viewType == ListItem.TYPE_HEADER_PADDED ? Screen.dp(4f) : 0;
         textView.setPadding(Screen.dp(16f), paddingTop, Screen.dp(16f), viewType == ListItem.TYPE_HEADER_MULTILINE ? Screen.dp(6f) : 0);
@@ -1564,7 +1560,7 @@ public class SettingHolder extends RecyclerView.ViewHolder {
           callsState.setLayoutParams(params);
           callsState.setCompoundDrawablesWithIntrinsicBounds(callIcon, null, null, null);
           callsState.setCompoundDrawablePadding(Screen.dp(8));
-          callsState.setText(Lang.getString(R.string.SessionAcceptsCalls));
+          callsState.setText("Calls");
           callsState.setTextColor(Theme.getColor(ColorId.textNeutral));
           callsState.setAllCaps(true);
           callsState.setGravity(Gravity.CENTER_VERTICAL);
@@ -2248,7 +2244,7 @@ public class SettingHolder extends RecyclerView.ViewHolder {
 
           int inputIndex = 0;
           for (int id : ids) {
-            editText = new MaterialEditTextGroup(context, tdlib);
+            editText = new MaterialEditTextGroup(context);
             if (id != R.id.color_default) {
               editText.getEditText().setSelectAllOnFocus(true);
             }

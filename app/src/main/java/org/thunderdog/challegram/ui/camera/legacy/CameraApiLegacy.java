@@ -69,8 +69,7 @@ public class CameraApiLegacy extends CameraApi implements Camera.PreviewCallback
 
   @Override
   protected void onNextCameraSourceRequested () {
-    final boolean isActive = isCameraActive;
-    if (mNumberOfCameras > 1) {
+    if (isCameraActive && mNumberOfCameras > 1) {
       resetContextualSettings();
       manager.resetRenderState(true);
       int nextCameraIndex = getNextCameraIndex();
@@ -78,13 +77,9 @@ public class CameraApiLegacy extends CameraApi implements Camera.PreviewCallback
       boolean forward = nextCameraIndex >= getRequestedCameraIndex();
       boolean toFrontFace = nextCameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
       manager.onCameraSourceChange(false, forward, toFrontFace);
-      if (isActive) {
-        setCameraActive(false);
-      }
+      setCameraActive(false);
       setRequestedCameraIndex(nextCameraIndex);
-      if (isActive) {
-        setCameraActive(true);
-      }
+      setCameraActive(true);
       manager.onCameraSourceChange(true, forward, toFrontFace);
     }
   }

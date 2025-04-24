@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public final class TdlibDataSource extends BaseDataSource {
   private static final String SCHEME = "tg";
@@ -182,21 +182,15 @@ public final class TdlibDataSource extends BaseDataSource {
     }
   }
 
-  private long getAvailableSize (TdApi.File file, long offset, int length) {
+  private static int getAvailableSize (TdApi.File file, long offset, int length) {
     long available;
-    if (file.local.isDownloadingCompleted) {
+    if (file.local.isDownloadingCompleted)
       available = file.local.downloadedSize - offset;
-    } else if (offset >= file.local.downloadOffset && offset < file.local.downloadOffset + file.local.downloadedPrefixSize) {
+    else if (offset >= file.local.downloadOffset && offset < file.local.downloadOffset + file.local.downloadedPrefixSize)
       available = file.local.downloadedPrefixSize - (offset - file.local.downloadOffset);
-    } else {
-      TdApi.FileDownloadedPrefixSize downloadedPrefixSize = tdlib.clientExecuteT(new TdApi.GetFileDownloadedPrefixSize(file.id, offset), 1000L, false);
-      if (downloadedPrefixSize != null) {
-        available = downloadedPrefixSize.size;
-      } else {
-        return 0;
-      }
-    }
-    return Math.max(0, Math.min(length, available));
+    else
+      return 0;
+    return (int) Math.max(0, Math.min(length, available));
   }
 
   private final TdApi.File localFile = new TdApi.File(0, 0, 0, new TdApi.LocalFile(), new TdApi.RemoteFile());
@@ -261,7 +255,7 @@ public final class TdlibDataSource extends BaseDataSource {
             acquireReference(file, offset);
           }
         }
-        long available = getAvailableSize(file, offset, readLength);
+        int available = getAvailableSize(file, offset, readLength);
         if (available == 0) {
           latch.await();
           continue;
@@ -277,7 +271,7 @@ public final class TdlibDataSource extends BaseDataSource {
           if (opened && offset > 0) {
             openFile.seek(offset);
           }
-          int readCount = openFile.read(buffer, bufferOffset, available > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) available);
+          int readCount = openFile.read(buffer, bufferOffset, available);
           bytesTransferred(readCount);
           bytesRead += readCount;
           return readCount;

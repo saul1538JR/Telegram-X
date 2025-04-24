@@ -46,7 +46,6 @@ import me.vkryl.core.ColorUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 
-@SuppressWarnings("unchecked")
 public class ImageReceiver implements Watcher, ValueAnimator.AnimatorUpdateListener, Receiver, ImageFile.CropStateChangeListener {
   private static boolean ANIMATION_ENABLED;
 
@@ -100,6 +99,7 @@ public class ImageReceiver implements Watcher, ValueAnimator.AnimatorUpdateListe
     }
   }
 
+  /** @noinspection unchecked*/
   @Override
   public final ImageReceiver setUpdateListener (ReceiverUpdateListener listener) {
     this.updateListener = listener;
@@ -107,7 +107,6 @@ public class ImageReceiver implements Watcher, ValueAnimator.AnimatorUpdateListe
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void invalidate () {
     if (view != null) {
       /*if (drawRegion.isEmpty()) {
@@ -1148,7 +1147,6 @@ public class ImageReceiver implements Watcher, ValueAnimator.AnimatorUpdateListe
     return false;
   }
 
-  @SuppressWarnings("deprecation")
   public Paint getBitmapPaint () {
     float alpha = (float) metadataPaint.getAlpha() / 255f;
     if (porterDuffColorIsId && porterDuffColor == ColorId.NONE) {

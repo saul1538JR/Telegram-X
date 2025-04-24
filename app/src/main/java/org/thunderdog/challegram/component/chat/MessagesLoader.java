@@ -37,7 +37,6 @@ import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.data.TGMessage;
 import org.thunderdog.challegram.data.TdApiExt;
 import org.thunderdog.challegram.data.ThreadInfo;
-import org.thunderdog.challegram.emoji.EmojiCodes;
 import org.thunderdog.challegram.telegram.Tdlib;
 import org.thunderdog.challegram.telegram.TdlibDelegate;
 import org.thunderdog.challegram.telegram.TdlibMessageViewer;
@@ -55,10 +54,10 @@ import me.vkryl.core.DateUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.ChatId;
-import tgx.td.MessageId;
-import tgx.td.Td;
-import tgx.td.TdConstants;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.MessageId;
+import me.vkryl.td.Td;
+import me.vkryl.td.TdConstants;
 
 public class MessagesLoader implements Client.ResultHandler {
   private static final boolean DEBUG_HANDLER = false;
@@ -928,6 +927,7 @@ public class MessagesLoader implements Client.ResultHandler {
           height,
           null,
           new TdApi.StickerFormatWebp(), new TdApi.StickerFullTypeRegular(),
+          null,
           new TdApi.Thumbnail(new TdApi.ThumbnailFormatWebp(), width, height, thumbFile),
           file
         );
@@ -966,7 +966,7 @@ public class MessagesLoader implements Client.ResultHandler {
 
       TdApi.MessageContent content;
       if (photo != null)
-        content = new TdApi.MessagePhoto(photo, text, false, false, false);
+        content = new TdApi.MessagePhoto(photo, text, false, false);
       else if (sticker != null)
         content = new TdApi.MessageSticker(sticker, false);
       else if (audio != null)
@@ -1004,10 +1004,8 @@ public class MessagesLoader implements Client.ResultHandler {
           msg.interactionInfo = new TdApi.MessageInteractionInfo();
           msg.interactionInfo.reactions = new TdApi.MessageReactions(
             new TdApi.MessageReaction[]{
-              new TdApi.MessageReaction(new TdApi.ReactionTypeEmoji(EmojiCodes.THUMBS_UP), 5, true, mySender, new TdApi.MessageSender[0])
+              new TdApi.MessageReaction(new TdApi.ReactionTypeEmoji("\uD83D\uDC4D"), 5, true, mySender, new TdApi.MessageSender[0])
             },
-            false,
-            new TdApi.PaidReactor[0],
             false
           );
         }
@@ -1217,15 +1215,22 @@ public class MessagesLoader implements Client.ResultHandler {
       null,
       null,
       tdlib.isSelfSender(event.memberId),
-      false, false, canBeSaved, false,
-      isChannel, false, false,
+      false, false, false,
+      false, false, canBeSaved,
+      false, false,
+      false, false, false, false, false,
+      false, false, false,
+      isChannel, false,
+      false,
       event.date, 0,
       null, null, null, null,
-      null, null, 0, 0,
+      null, 0, 0,
       null, 0, 0,
       0, 0, 0, null,
-      0, 0, false,
-      null, null, null
+      0,
+      null,
+      null,
+      null
     );
   }
 

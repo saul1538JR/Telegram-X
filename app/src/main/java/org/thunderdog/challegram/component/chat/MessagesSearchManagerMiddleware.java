@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 import me.vkryl.core.ObjectUtils;
 import me.vkryl.core.StringUtils;
-import tgx.td.Td;
+import me.vkryl.td.Td;
 
 public class MessagesSearchManagerMiddleware {
   public static final int FILTER_NONE = 1;

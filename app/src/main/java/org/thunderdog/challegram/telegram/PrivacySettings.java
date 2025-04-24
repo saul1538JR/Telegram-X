@@ -25,8 +25,8 @@ import java.util.List;
 
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.collection.LongList;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class PrivacySettings {
 
@@ -38,27 +38,17 @@ public class PrivacySettings {
     int NOBODY = 0, CONTACTS = 1, EVERYBODY = 2;
   }
 
-  @Retention(RetentionPolicy.SOURCE)
-  @IntDef({
-    BotsException.DEFAULT, BotsException.ALLOW, BotsException.RESTRICT
-  })
-  public @interface BotsException {
-    int DEFAULT = 0, ALLOW = 1, RESTRICT = 2;
-  }
-
   private final List<TdApi.UserPrivacySettingRule> rules;
   private final int mode;
   private final boolean plusPremium;
-  private final int botsException;
   private final long[] plusUserIds;
   private final long[] minusUserIds;
   private final long[] plusChatIds;
   private final long[] minusChatIds;
 
-  public PrivacySettings (TdApi.UserPrivacySettingRules rules, @Mode int mode, boolean plusPremium, @BotsException int botsException, long[] plusUserIds, long[] minusUserIds, long[] plusChatIds, long[] minusChatIds) {
+  public PrivacySettings (TdApi.UserPrivacySettingRules rules, int mode, boolean plusPremium, long[] plusUserIds, long[] minusUserIds, long[] plusChatIds, long[] minusChatIds) {
     this.rules = Arrays.asList(rules.rules);
     this.mode = mode;
-    this.botsException = botsException;
     this.plusPremium = plusPremium;
     this.plusUserIds = plusUserIds;
     this.minusUserIds = minusUserIds;
@@ -67,14 +57,22 @@ public class PrivacySettings {
   }
 
   public boolean needNeverAllow () {
-    return mode != Mode.NOBODY;
+    if (mode != Mode.NOBODY)
+      return true;
+    /*for (TdApi.UserPrivacySettingRule rule : rules) {
+      if (isGeneral(rule, false))
+        break;
+      if (rule.getConstructor() == TdApi.UserPrivacySettingRuleAllowChatMembers.CONSTRUCTOR)
+        return true;
+    }*/
+    return false;
   }
 
   public boolean needAlwaysAllow () {
     if (mode != Mode.EVERYBODY)
       return true;
     for (TdApi.UserPrivacySettingRule rule : rules) {
-      if (isGeneral(rule, false, false, false))
+      if (isGeneral(rule, false, false))
         break;
       if (rule.getConstructor() == TdApi.UserPrivacySettingRuleRestrictChatMembers.CONSTRUCTOR)
         return true;
@@ -84,10 +82,6 @@ public class PrivacySettings {
 
   public boolean needPlusPremium () {
     return plusPremium;
-  }
-
-  public boolean needPlusOrMinusBots () {
-    return botsException != BotsException.DEFAULT;
   }
 
   public long[] getAllPlusIds () {
@@ -114,15 +108,13 @@ public class PrivacySettings {
         }
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictChatMembers.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
+        case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR: {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -149,8 +141,8 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleAllowAll.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
-          if (isGeneral(rule, false, false, false)) {
+          Td.assertUserPrivacySettingRule_c58ead3c();
+          if (isGeneral(rule, false, false)) {
             break loop;
           }
           break;
@@ -178,7 +170,7 @@ public class PrivacySettings {
     return true;
   }
 
-  public boolean isAllowed (boolean forPremium, boolean forContacts, boolean forBots) {
+  public boolean isAllowed (boolean forPremium, boolean forContacts) {
     for (TdApi.UserPrivacySettingRule rule : rules) {
       switch (rule.getConstructor()) {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
@@ -187,14 +179,6 @@ public class PrivacySettings {
           continue;
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
           if (forContacts)
-            return false;
-          continue;
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-          if (forBots)
-            return true;
-          continue;
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
-          if (forBots)
             return false;
           continue;
         case TdApi.UserPrivacySettingRuleAllowAll.CONSTRUCTOR:
@@ -211,27 +195,23 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleRestrictChatMembers.CONSTRUCTOR:
           break;
         default:
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
       }
     }
     return false;
   }
 
-  public TdApi.UserPrivacySettingRules toggleGlobal (int mode, boolean plusPremium, boolean plusOrMinusBots) {
+  public TdApi.UserPrivacySettingRules toggleGlobal (int mode, boolean plusPremium) {
     switch (mode) {
       case Mode.NOBODY:
-        return toggleGlobal(plusPremium, false, false, plusOrMinusBots ? BotsException.ALLOW : BotsException.DEFAULT);
+        return toggleGlobal(plusPremium, false, false);
       case Mode.CONTACTS:
-        return toggleGlobal(plusPremium, true, false, plusOrMinusBots ? BotsException.ALLOW : BotsException.DEFAULT);
+        return toggleGlobal(plusPremium, true, false);
       case Mode.EVERYBODY:
-        return toggleGlobal(true, true, true, plusOrMinusBots ? BotsException.RESTRICT : BotsException.DEFAULT);
+        return toggleGlobal(true, true, true);
     }
     throw new UnsupportedOperationException(Integer.toString(mode));
-  }
-
-  public TdApi.UserPrivacySettingRules togglePlusOrMinusBots (boolean plusOrMinusBots) {
-    return toggleGlobal(mode, plusPremium, plusOrMinusBots);
   }
 
   public TdApi.UserPrivacySettingRules togglePlusPremium (boolean plusPremium) {
@@ -255,8 +235,7 @@ public class PrivacySettings {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
-          break;
+          Td.assertUserPrivacySettingRule_c58ead3c();
         }
       }
     }
@@ -271,7 +250,7 @@ public class PrivacySettings {
     return new TdApi.UserPrivacySettingRules(newRules.toArray(new TdApi.UserPrivacySettingRule[0]));
   }
 
-  public TdApi.UserPrivacySettingRules toggleGlobal (boolean allowPremium, boolean allowContacts, boolean allowOther, @BotsException int botsException) {
+  public TdApi.UserPrivacySettingRules toggleGlobal (boolean allowPremium, boolean allowContacts, boolean allowOther) {
     List<TdApi.UserPrivacySettingRule> newRules = new ArrayList<>(rules);
     for (int i = 0; i < newRules.size(); i++) {
       TdApi.UserPrivacySettingRule rule = newRules.get(i);
@@ -281,8 +260,6 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleAllowAll.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
           newRules.remove(i);
           i--;
           break;
@@ -292,19 +269,9 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleRestrictChatMembers.CONSTRUCTOR:
           break;
         default:
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
       }
-    }
-    switch (botsException) {
-      case BotsException.DEFAULT:
-        break;
-      case BotsException.ALLOW:
-        newRules.add(new TdApi.UserPrivacySettingRuleAllowBots());
-        break;
-      case BotsException.RESTRICT:
-        newRules.add(new TdApi.UserPrivacySettingRuleRestrictBots());
-        break;
     }
     if (allowContacts && allowOther) {
       newRules.add(new TdApi.UserPrivacySettingRuleAllowAll());
@@ -328,8 +295,8 @@ public class PrivacySettings {
   public TdApi.UserPrivacySettingRules toggleChat (long chatId, boolean value) {
     List<TdApi.UserPrivacySettingRule> newRules = new ArrayList<>(rules);
     TdApi.UserPrivacySettingRule matchingRule;
-    while (isAllow(matchingRule = firstMatchingRule(newRules, chatId, false, false, false)) != value) {
-      if (isGeneral(matchingRule,  true,true, false)) {
+    while (isAllow(matchingRule = firstMatchingRule(newRules, chatId, false, false)) != value) {
+      if (isGeneral(matchingRule,  true,false)) {
         int index = 0;
         if (!newRules.isEmpty()) {
           while (index != -1 && index < newRules.size()) {
@@ -364,10 +331,8 @@ public class PrivacySettings {
               case TdApi.UserPrivacySettingRuleAllowUsers.CONSTRUCTOR:
               case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
               case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
-              case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
-              case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-              case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
-                // Placing chatMembers rules after any general rules
+              case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
+                // Placing ruleAllowChatMembers & ruleRestrictChatMembers after any ruleAllowUsers & ruleRestrictUsers
                 index++;
                 continue;
               }
@@ -378,7 +343,7 @@ public class PrivacySettings {
                 break;
               }
               default: {
-                Td.assertUserPrivacySettingRule_58b21786();
+                Td.assertUserPrivacySettingRule_c58ead3c();
                 throw Td.unsupported(matchingRule);
               }
             }
@@ -386,9 +351,7 @@ public class PrivacySettings {
           }
         }
         if (index != -1) {
-          TdApi.UserPrivacySettingRule newRule = value ?
-            new TdApi.UserPrivacySettingRuleAllowChatMembers(new long[] {chatId}) :
-            new TdApi.UserPrivacySettingRuleRestrictChatMembers(new long[] {chatId});
+          TdApi.UserPrivacySettingRule newRule = value ? new TdApi.UserPrivacySettingRuleAllowChatMembers(new long[] {chatId}) : new TdApi.UserPrivacySettingRuleRestrictChatMembers(new long[] {chatId});
           if (index < newRules.size())
             newRules.add(index, newRule);
           else
@@ -429,13 +392,13 @@ public class PrivacySettings {
     return new TdApi.UserPrivacySettingRules(newRules.toArray(new TdApi.UserPrivacySettingRule[0]));
   }
 
-  public TdApi.UserPrivacySettingRules toggleUser (long userId, boolean isPremium, boolean isContact, boolean isBot, long[] groupsInCommon, boolean value) {
+  public TdApi.UserPrivacySettingRules toggleUser (long userId, boolean isPremium, boolean isContact, long[] groupsInCommon, boolean value) {
     List<TdApi.UserPrivacySettingRule> newRules = new ArrayList<>(rules);
     TdApi.UserPrivacySettingRule matchingRule;
-    while (isAllow(matchingRule = firstMatchingRuleForUser(newRules, userId, isPremium, isContact, isBot, groupsInCommon)) != value) {
-      if (isGeneral(matchingRule, true, true, true)) {
+    while (isAllow(matchingRule = firstMatchingRuleForUser(newRules, userId, isPremium, isContact, groupsInCommon)) != value) {
+      if (isGeneral(matchingRule, true, true)) {
         int index = 0;
-        while (index != -1 && index < newRules.size() && !isGeneral(matchingRule = newRules.get(index), true, true, true)) {
+        while (index != -1 && index < newRules.size() && !isGeneral(matchingRule = newRules.get(index), true, true)) {
           switch (matchingRule.getConstructor()) {
             case TdApi.UserPrivacySettingRuleAllowUsers.CONSTRUCTOR: {
               TdApi.UserPrivacySettingRuleAllowUsers allowUsers = (TdApi.UserPrivacySettingRuleAllowUsers) matchingRule;
@@ -509,11 +472,11 @@ public class PrivacySettings {
   }
 
   public TdApi.UserPrivacySettingRule firstMatchingRuleForChat (long chatId) {
-    return firstMatchingRuleForChat(chatId, false, false, false);
+    return firstMatchingRuleForChat(chatId, false, false);
   }
 
-  public TdApi.UserPrivacySettingRule firstMatchingRuleForChat (long chatId, boolean needPremiumUsers, boolean needContacts, boolean needBots) {
-    return firstMatchingRule(rules, chatId, needPremiumUsers, needContacts, needBots);
+  public TdApi.UserPrivacySettingRule firstMatchingRuleForChat (long chatId, boolean needPremiumUsers, boolean needContacts) {
+    return firstMatchingRule(rules, chatId, needPremiumUsers, needContacts);
   }
 
   @IntDef({
@@ -524,12 +487,7 @@ public class PrivacySettings {
     ResolvedMatch.PREMIUM
   })
   public @interface ResolvedMatch {
-    int
-      NONE = 0,
-      SPECIFIC = 1,
-      CONTACTS = 2,
-      CONTACTS_AND_PREMIUM = 3,
-      PREMIUM = 5;
+    int NONE = 0, SPECIFIC = 1, CONTACTS = 2, CONTACTS_AND_PREMIUM = 3, PREMIUM = 4;
   }
 
   public @ResolvedMatch int resolveMatchingAllowRulesForChat (long chatId) {
@@ -564,13 +522,11 @@ public class PrivacySettings {
           break;
         }
         case TdApi.UserPrivacySettingRuleAllowUsers.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
+        case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR: {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -586,20 +542,13 @@ public class PrivacySettings {
     }
   }
 
-  public static TdApi.UserPrivacySettingRule firstMatchingRule (List<TdApi.UserPrivacySettingRule> rules, long chatId, boolean needPremiumUsers, boolean needContacts, boolean needBots) {
+  public static TdApi.UserPrivacySettingRule firstMatchingRule (List<TdApi.UserPrivacySettingRule> rules, long chatId, boolean needPremiumUsers, boolean needContacts) {
     TdApi.UserPrivacySettingRule generalRule = null;
     for (TdApi.UserPrivacySettingRule rule : rules) {
       switch (rule.getConstructor()) {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
           if (needContacts) {
-            generalRule = rule;
-          }
-          break;
-        }
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
-          if (needBots) {
             generalRule = rule;
           }
           break;
@@ -629,7 +578,7 @@ public class PrivacySettings {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -637,7 +586,7 @@ public class PrivacySettings {
     return generalRule;
   }
 
-  public TdApi.UserPrivacySettingRule findTopRule (boolean isPremium, boolean isContact, boolean isBot) {
+  public TdApi.UserPrivacySettingRule findTopRule (boolean isPremium, boolean isContact) {
     for (TdApi.UserPrivacySettingRule rule : rules) {
       switch (rule.getConstructor()) {
         case TdApi.UserPrivacySettingRuleAllowAll.CONSTRUCTOR:
@@ -647,12 +596,6 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
           if (isContact)
-            return rule;
-          break;
-        }
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
-          if (isBot)
             return rule;
           break;
         }
@@ -667,7 +610,7 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
           break;
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -675,22 +618,16 @@ public class PrivacySettings {
     return null;
   }
 
-  public TdApi.UserPrivacySettingRule firstMatchingRuleForUser (long userId, boolean isPremium, boolean isContact, boolean isBot, long[] groupsInCommon) {
-    return firstMatchingRuleForUser(rules, userId, isPremium, isContact, isBot, groupsInCommon);
+  public TdApi.UserPrivacySettingRule firstMatchingRuleForUser (long userId, boolean isPremium, boolean isContact, long[] groupsInCommon) {
+    return firstMatchingRuleForUser(rules, userId, isPremium, isContact, groupsInCommon);
   }
 
-  public static TdApi.UserPrivacySettingRule firstMatchingRuleForUser (List<TdApi.UserPrivacySettingRule> rules, long userId, boolean isPremium, boolean isContact, boolean isBot, long[] groupsInCommon) {
+  public static TdApi.UserPrivacySettingRule firstMatchingRuleForUser (List<TdApi.UserPrivacySettingRule> rules, long userId, boolean isPremium, boolean isContact, long[] groupsInCommon) {
     for (TdApi.UserPrivacySettingRule rule : rules) {
       switch (rule.getConstructor()) {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
           if (isContact)
-            return rule;
-          continue;
-        }
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
-          if (isBot)
             return rule;
           continue;
         }
@@ -724,7 +661,7 @@ public class PrivacySettings {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -740,17 +677,15 @@ public class PrivacySettings {
       case TdApi.UserPrivacySettingRuleAllowUsers.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleAllowChatMembers.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
-      case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
         return true;
       case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleRestrictChatMembers.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
-      case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
         return false;
       default: {
-        Td.assertUserPrivacySettingRule_58b21786();
+        Td.assertUserPrivacySettingRule_c58ead3c();
         throw Td.unsupported(rule);
       }
     }
@@ -760,7 +695,7 @@ public class PrivacySettings {
     return new TdApi.UserPrivacySettingRules(rules.toArray(new TdApi.UserPrivacySettingRule[0]));
   }
 
-  public static boolean isGeneral (TdApi.UserPrivacySettingRule rule, boolean premiumIsGeneral, boolean botsIsGeneral, boolean chatMembersIsGeneral) {
+  public static boolean isGeneral (TdApi.UserPrivacySettingRule rule, boolean premiumIsGeneral, boolean chatMembersIsGeneral) {
     if (rule == null)
       return true;
     switch (rule.getConstructor()) {
@@ -771,9 +706,6 @@ public class PrivacySettings {
         return true;
       case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
         return premiumIsGeneral;
-      case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-      case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
-        return botsIsGeneral;
       case TdApi.UserPrivacySettingRuleAllowUsers.CONSTRUCTOR:
       case TdApi.UserPrivacySettingRuleRestrictUsers.CONSTRUCTOR:
         return false;
@@ -781,7 +713,7 @@ public class PrivacySettings {
       case TdApi.UserPrivacySettingRuleAllowChatMembers.CONSTRUCTOR:
         return chatMembersIsGeneral;
       default: {
-        Td.assertUserPrivacySettingRule_58b21786();
+        Td.assertUserPrivacySettingRule_c58ead3c();
         throw Td.unsupported(rule);
       }
     }
@@ -816,13 +748,11 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
+        case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -843,11 +773,9 @@ public class PrivacySettings {
           case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
           case TdApi.UserPrivacySettingRuleAllowAll.CONSTRUCTOR:
           case TdApi.UserPrivacySettingRuleAllowChatMembers.CONSTRUCTOR:
-          case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR:
-          case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
             break;
           default: {
-            Td.assertUserPrivacySettingRule_58b21786();
+            Td.assertUserPrivacySettingRule_c58ead3c();
             throw Td.unsupported(rule);
           }
         }
@@ -895,20 +823,18 @@ public class PrivacySettings {
         case TdApi.UserPrivacySettingRuleAllowContacts.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleAllowPremiumUsers.CONSTRUCTOR:
         case TdApi.UserPrivacySettingRuleRestrictAll.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR:
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR: {
+        case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
     }
     if (chatIds != null && chatIds.length > 0) {
       int index = 0;
-      while (index < newRules.size() && !isGeneral(newRules.get(index), true, true, true)) {
+      while (index < newRules.size() && !isGeneral(newRules.get(index), true, true)) {
         index++;
       }
       TdApi.UserPrivacySettingRuleRestrictChatMembers newRule = new TdApi.UserPrivacySettingRuleRestrictChatMembers(chatIds);
@@ -968,7 +894,7 @@ public class PrivacySettings {
     return memberCount;
   }
 
-  public @Mode int getMode () {
+  public int getMode () {
     return mode;
   }
 
@@ -980,7 +906,6 @@ public class PrivacySettings {
     boolean contactsHandled = false;
     boolean premiumHandled = false;
     boolean plusPremium = false;
-    @BotsException int botsException = BotsException.DEFAULT;
     LongList plusUserIds = null;
     LongList minusUserIds = null;
     LongList plusChatIds = null;
@@ -1007,14 +932,6 @@ public class PrivacySettings {
             contactsHandled = true;
             allowContacts = true;
           }
-          break;
-        }
-        case TdApi.UserPrivacySettingRuleAllowBots.CONSTRUCTOR: {
-          botsException = BotsException.ALLOW;
-          break;
-        }
-        case TdApi.UserPrivacySettingRuleRestrictBots.CONSTRUCTOR: {
-          botsException = BotsException.RESTRICT;
           break;
         }
         case TdApi.UserPrivacySettingRuleRestrictContacts.CONSTRUCTOR: {
@@ -1064,7 +981,7 @@ public class PrivacySettings {
           break;
         }
         default: {
-          Td.assertUserPrivacySettingRule_58b21786();
+          Td.assertUserPrivacySettingRule_c58ead3c();
           throw Td.unsupported(rule);
         }
       }
@@ -1073,7 +990,6 @@ public class PrivacySettings {
       rules,
       allowAll ? Mode.EVERYBODY : allowContacts ? Mode.CONTACTS : Mode.NOBODY,
       plusPremium,
-      botsException,
       plusUserIds != null ? plusUserIds.get() : null,
       minusUserIds != null ? minusUserIds.get() : null,
       plusChatIds != null ? plusChatIds.get() : null,

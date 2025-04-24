@@ -18,12 +18,14 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.drinkless.tdlib.TdApi;
+import org.thunderdog.challegram.U;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.emoji.Emoji;
 import org.thunderdog.challegram.emoji.EmojiInfo;
@@ -51,7 +53,7 @@ public class TextPart {
   private int height = -1;
   private @BiDiEntity int bidiEntity;
 
-  private int lineIndex, paragraphIndex;
+  private final int lineIndex, paragraphIndex;
 
   public TextPart (Text source, String line, int start, int end, int lineIndex, int paragraphIndex) {
     this.source = source;
@@ -74,11 +76,6 @@ public class TextPart {
     this.line = line;
     this.start = start;
     this.end = end;
-  }
-
-  public void setLineIndex (int lineIndex, int paragraphIndex) {
-    this.lineIndex = lineIndex;
-    this.paragraphIndex = paragraphIndex;
   }
 
   public void setXY (int x, int y) {
@@ -115,7 +112,7 @@ public class TextPart {
   }
 
   public float getWidth () {
-    return width;
+    return trimmedLine != null ? trimmedWidth : width;
   }
 
   public int getHeight () {
@@ -180,6 +177,27 @@ public class TextPart {
     }
     if (this.end != end) {
       this.end = end;
+      if (trimmedLine != null) {
+        trimContents(trimmedMaxWidth);
+      }
+    }
+  }
+
+  private String trimmedLine;
+  private float trimmedWidth;
+  private float trimmedMaxWidth;
+
+  public void trimContents (float realMaxWidth) {
+    this.trimmedMaxWidth = realMaxWidth;
+    TextPaint paint = source.getTextPaint(entity);
+    int ellipsis = (int) U.measureText("…", paint);
+    int maxWidth = (int) realMaxWidth - ellipsis - x;
+    trimmedLine = line.substring(start, end);
+    trimmedLine = TextUtils.ellipsize(trimmedLine, paint, maxWidth, TextUtils.TruncateAt.END).toString();
+    trimmedWidth = U.measureText(trimmedLine, paint);
+    if (!trimmedLine.endsWith("…")) {
+      trimmedLine = trimmedLine + "…";
+      trimmedWidth += ellipsis;
     }
   }
 
@@ -269,7 +287,7 @@ public class TextPart {
   }
 
   public boolean wouldMergeWithNextPart (TextPart part) {
-    return part != null && part != this && emojiInfo == null && part.emojiInfo == null && media == null && part.media == null && this.y == part.y && line == part.line && end == part.start && isSameEntity(part.entity) && bidiEntity == part.bidiEntity && requiresTopLayer() == part.requiresTopLayer();
+    return part != null && part != this && emojiInfo == null && part.emojiInfo == null && media == null && part.media == null && trimmedLine == null && part.trimmedLine == null && this.y == part.y && line == part.line && end == part.start && isSameEntity(part.entity) && bidiEntity == part.bidiEntity && requiresTopLayer() == part.requiresTopLayer();
   }
 
   @NonNull
@@ -289,6 +307,8 @@ public class TextPart {
     int x = makeX(startX, endX, endXBottomPadding);
     if (isStaticElement())
       throw new IllegalStateException("static elements can't be merged");
+    if (trimmedLine != null)
+      throw new IllegalStateException("trimmedLine != null");
     TextPaint paint = getPaint(partIndex, alpha, colorProvider);
     final float textSize = paint.getTextSize();
     final int textY = y + source.getAscent(textSize) + paint.baselineShift;
@@ -407,46 +427,20 @@ public class TextPart {
       }
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && BiDiUtils.isValid(bidiEntity)) {
-        c.drawTextRun(line, start, end, 0, line.length(), x, textY, BiDiUtils.isRtl(bidiEntity), textPaint);
+        if (trimmedLine != null) {
+          c.drawTextRun(trimmedLine, 0, trimmedLine.length(), 0, trimmedLine.length(), x, textY, BiDiUtils.isRtl(bidiEntity), textPaint);
+        } else {
+          c.drawTextRun(line, start, end, start, end, x, textY, BiDiUtils.isRtl(bidiEntity), textPaint);
+        }
       } else {
-        c.drawText(line, start, end, x, textY, textPaint);
+        if (trimmedLine != null) {
+          c.drawText(trimmedLine, x, textY, textPaint);
+        } else {
+          c.drawText(line, start, end, x, textY, textPaint);
+        }
       }
     }
   }
 
   private static final boolean DEBUG = false;
-
-  public int getQuoteEntityId () {
-    return entity != null ? entity.getQuoteId() : -1;
-  }
-
-  public static int getAdditionalLinesBefore (TextPart part) {
-    final TextEntity entity = part.getEntity();
-    if (entity == null) return 0;
-
-    final int startEntity = entity.getStart();
-    final int startPart = part.getStart();
-    int startLinesCount = 0;
-
-    while ((startPart - startLinesCount - 1) >= startEntity && part.getLine().charAt(startPart - startLinesCount - 1) == '\n') {
-      startLinesCount++;
-    }
-
-    return startLinesCount;
-  }
-
-  public static int getAdditionalLinesAfter (TextPart part) {
-    final TextEntity entity = part.getEntity();
-    if (entity == null) return 0;
-
-    final int endEntity = entity.getEnd();
-    final int endPart = part.getEnd();
-    int endLinesCount = 0;
-
-    while ((endPart + endLinesCount) < endEntity && part.getLine().charAt(endPart + endLinesCount) == '\n') {
-      endLinesCount++;
-    }
-
-    return endLinesCount;
-  }
 }

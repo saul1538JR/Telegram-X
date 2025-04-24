@@ -89,15 +89,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class SettingsNotificationController extends RecyclerViewController<SettingsNotificationController.Args> implements
   View.OnClickListener, View.OnLongClickListener,
@@ -455,32 +454,14 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
       case TdlibNotificationManager.Status.FIREBASE_ERROR:
         return Lang.getMarkdownString(this, R.string.NotificationsGuideFirebaseError, Lang.boldCreator(), tdlib.context().getTokenError());
       case TdlibNotificationManager.Status.INTERNAL_ERROR: {
-        @StringRes int
-          specificChatRes = R.string.NotificationsGuideErrorChat,
-          commonRes = R.string.NotificationsGuideError;
-
-        TdlibSettingsManager.NotificationProblems problems = tdlib.settings().notificationProblems();
-        if (problems != null && !problems.isEmpty()) {
-          Set<String> messages = problems.allMessages();
-          if (messages.size() == 1) {
-            String message = messages.iterator().next();
-            if (message.toLowerCase().contains("Limit exceed; cannot create more channels".toLowerCase())) {
-              specificChatRes = R.string.NotificationsGuideCategoryLimitErrorChat;
-              commonRes = R.string.NotificationsGuideCategoryLimit;
-            } else {
-              // TODO: add more detailed guides, as they're going to be found.
-            }
-          }
-        }
-
         long chatId = tdlib.settings().getLastNotificationProblematicChat();
         if (chatId != 0) {
           TdApi.Chat chat = tdlib.chatSync(chatId);
           if (chat != null) {
-            return Lang.getMarkdownString(this, specificChatRes, Lang.boldCreator(), tdlib.chatTitle(chat));
+            return Lang.getMarkdownString(this, R.string.NotificationsGuideErrorChat, Lang.boldCreator(), tdlib.chatTitle(chat));
           }
         }
-        guideRes = commonRes;
+        guideRes = R.string.NotificationsGuideError;
         break;
       }
       case TdlibNotificationManager.Status.ACCOUNT_NOT_SELECTED:

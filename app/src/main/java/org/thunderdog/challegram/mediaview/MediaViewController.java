@@ -149,7 +149,6 @@ import org.thunderdog.challegram.widget.CheckView;
 import org.thunderdog.challegram.widget.CustomTextView;
 import org.thunderdog.challegram.widget.EmojiLayout;
 import org.thunderdog.challegram.widget.FileProgressComponent;
-import org.thunderdog.challegram.widget.KeyboardFrameLayout;
 import org.thunderdog.challegram.widget.NoScrollTextView;
 import org.thunderdog.challegram.widget.PopupLayout;
 import org.thunderdog.challegram.widget.ShadowView;
@@ -177,10 +176,10 @@ import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.Destroyable;
 import me.vkryl.core.lambda.RunnableData;
-import tgx.td.ChatId;
-import tgx.td.MessageId;
-import tgx.td.Td;
-import tgx.td.TdConstants;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.MessageId;
+import me.vkryl.td.Td;
+import me.vkryl.td.TdConstants;
 
 public class MediaViewController extends ViewController<MediaViewController.Args> implements
   PopupLayout.AnimatedPopupProvider, FactorAnimator.Target, View.OnClickListener,
@@ -531,7 +530,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
 
   @Override
   public int provideOffset (InlineResultsWrap v) {
-    final int offset = keyboardFrameLayout != null && keyboardFrameLayout.getVisibility() == View.VISIBLE && keyboardFrameLayout.getParent() != null ? keyboardFrameLayout.getMeasuredHeight() : 0;
+    final int offset = emojiLayout != null && emojiLayout.getVisibility() == View.VISIBLE && emojiLayout.getParent() != null ? emojiLayout.getMeasuredHeight() : 0;
     return (captionView.getMeasuredHeight() /*- Screen.dp(50f)*/) + offset;
   }
 
@@ -635,7 +634,6 @@ public class MediaViewController extends ViewController<MediaViewController.Args
     }
   }
 
-  private KeyboardFrameLayout keyboardFrameLayout;
   private EmojiLayout emojiLayout;
   private TextFormattingLayout textFormattingLayout;
 
@@ -685,51 +683,31 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   @Override
   public void onSearchRequested (EmojiLayout layout, boolean areStickers) { }
 
-
-  private float getKeyboardOffset () {
-    return keyboardFrameLayout != null ? keyboardFrameLayout.getLayoutTranslationOffset() : 0f;
-  }
-
-  private void onKeyboardLayoutTranslation (float translationY) {
-    checkBottomWrapY();
-  }
-
-
   private void openEmojiKeyboard () {
     if (!emojiShown) {
-      if (keyboardFrameLayout == null) {
-        keyboardFrameLayout = new KeyboardFrameLayout(context());
-        keyboardFrameLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
-        keyboardFrameLayout.setParentView(bottomWrap, contentView, popupView);
-        keyboardFrameLayout.setUpdateTranslationListener(this::onKeyboardLayoutTranslation);
-        keyboardFrameLayout.useHideByDetachView();
-
-        textFormattingLayout = keyboardFrameLayout.contentView.textFormattingLayout;
-        textFormattingLayout.init(this, inputView, new TextFormattingLayout.Delegate() {
-          @Override
-          public void onWantsCloseTextFormattingKeyboard () {
-            closeTextFormattingKeyboard();
-          }
-
-          @Override
-          public void onWantsOpenTextFormattingKeyboard () {
-            openEmojiKeyboard();
-          }
-        });
-
-        emojiLayout = keyboardFrameLayout.contentView.emojiLayout;
+      if (emojiLayout == null) {
+        emojiLayout = new EmojiLayout(context());
         emojiLayout.initWithMediasEnabled(this, false, this, this, false); // FIXME shall we use dark mode?
         emojiLayout.setAllowPremiumFeatures(tdlib.isSelfChat(getOutputChatId()));
-        emojiLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        bottomWrap.addView(keyboardFrameLayout);
+        emojiLayout.setLayoutParams(FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
+        bottomWrap.addView(emojiLayout);
+        if (inputView != null) {
+          textFormattingLayout = new TextFormattingLayout(context(), this, inputView);
+          textFormattingLayout.setDelegate(this::closeTextFormattingKeyboard);
+          textFormattingLayout.setVisibility(View.GONE);
+          emojiLayout.addView(textFormattingLayout, FrameLayoutFix.newParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+        popupView.getViewTreeObserver().addOnPreDrawListener(emojiLayout);
+      } else if (emojiLayout.getParent() == null) {
+        bottomWrap.addView(emojiLayout);
       }
-      keyboardFrameLayout.setVisible(true);
+
       emojiState = getKeyboardState();
 
       setEmojiShown(true);
       if (emojiState) {
         captionEmojiButton.setImageResource(R.drawable.baseline_keyboard_24);
-        keyboardFrameLayout.hideKeyboard((EditText) captionView);
+        emojiLayout.hideKeyboard((EditText) captionView);
       } else {
         captionEmojiButton.setImageResource(R.drawable.baseline_direction_arrow_down_24);
       }
@@ -737,8 +715,10 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   }
 
   private void removeEmojiView () {
-    if (keyboardFrameLayout != null) {
-      keyboardFrameLayout.setVisible(false);
+    if (emojiLayout != null && emojiLayout.getParent() != null) {
+      ViewGroup parent = ((ViewGroup) emojiLayout.getParent());
+      parent.removeView(emojiLayout);
+      parent.requestLayout();
     }
   }
 
@@ -752,15 +732,11 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   }
 
   private void closeEmojiKeyboard () {
-    closeEmojiKeyboard(false);
-  }
-
-  private void closeEmojiKeyboard (boolean byKeyboardOpen) {
     if (emojiShown) {
-      if (keyboardFrameLayout != null) {
+      if (emojiLayout != null) {
         removeEmojiView();
-        if (emojiState && !byKeyboardOpen) {
-          keyboardFrameLayout.showKeyboard((EditText) captionView);
+        if (emojiState) {
+          emojiLayout.showKeyboard((EditText) captionView);
         }
       }
       setEmojiShown(false);
@@ -772,7 +748,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
 
   @Override
   public int[] displayBaseViewWithAnchor (EmojiToneHelper context, View anchorView, View viewToDisplay, int viewWidth, int viewHeight, int horizontalMargin, int horizontalOffset, int verticalOffset) {
-    return EmojiToneHelper.defaultDisplay(context, anchorView, viewToDisplay, viewWidth, viewHeight, horizontalMargin, horizontalOffset, verticalOffset, contentView, bottomWrap, keyboardFrameLayout);
+    return EmojiToneHelper.defaultDisplay(context, anchorView, viewToDisplay, viewWidth, viewHeight, horizontalMargin, horizontalOffset, verticalOffset, contentView, bottomWrap, emojiLayout);
   }
 
   @Override
@@ -783,7 +759,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   // Other
 
   private void checkCaptionButtonsY () {
-    final float offset = keyboardFrameLayout != null && keyboardFrameLayout.getVisibility() == View.VISIBLE && keyboardFrameLayout.getParent() != null ? keyboardFrameLayout.getMeasuredHeight() : 0;
+    final int offset = emojiLayout != null && emojiLayout.getVisibility() == View.VISIBLE && emojiLayout.getParent() != null ? emojiLayout.getMeasuredHeight() : 0;
     captionEmojiButton.setTranslationY(-offset);
     captionDoneButton.setTranslationY(-offset);
     captionWrapView.setTranslationY(-offset);
@@ -965,11 +941,11 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   public boolean onKeyboardStateChanged (boolean visible) {
     if (mode == MODE_GALLERY) {
       if (visible && !getKeyboardState()) {
-        closeEmojiKeyboard(true);
+        closeEmojiKeyboard();
       }
       boolean res = super.onKeyboardStateChanged(visible);
-      if (keyboardFrameLayout != null) {
-        keyboardFrameLayout.onKeyboardStateChanged(visible);
+      if (emojiLayout != null) {
+        emojiLayout.onKeyboardStateChanged(visible);
       }
       setInCaption(visible || emojiShown);
       mediaView.layoutCells();
@@ -1636,73 +1612,6 @@ public class MediaViewController extends ViewController<MediaViewController.Args
     moreButton.setBackgroundResource(R.drawable.bg_btn_header_light);
   }
 
-  private void openMoreMenu () {
-    IntList ids = new IntList(4);
-    StringList strings = new StringList(4);
-
-    MediaItem item = stack.getCurrent();
-
-    TdApi.Chat chat = tdlib.chat(item.getSourceChatId());
-    TdApi.Message message = item.getMessage();
-
-    if (message != null && tdlib.canEditMedia(message, tdlib.getMessagePropertiesSync(message), true)) {
-      ids.append(R.id.btn_replace);
-      strings.append(item.isVideo() ? R.string.ReplaceVideo : R.string.ReplaceImage);
-    }
-
-    if (item.isLoaded() && item.canBeSaved()) {
-      if ((item.isVideo() && !item.isGifType()) || (getArgumentsStrict().forceOpenIn)) {
-        ids.append(R.id.btn_open);
-        strings.append(R.string.OpenInExternalApp);
-      }
-      ids.append(R.id.btn_saveToGallery);
-      strings.append(R.string.SaveToGallery);
-    }
-
-    if (mode != MODE_SECRET && mode != MODE_GALLERY && item.canBeSaved() && item.canBeShared()) {
-      ids.append(R.id.btn_share);
-      strings.append(R.string.Share);
-    }
-
-    if (item.isGifType() && item.canBeSaved()) {
-      ids.append(R.id.btn_saveGif);
-      strings.append(R.string.SaveGif);
-    }
-
-    if (!StringUtils.isEmpty(getArgumentsStrict().copyLink) || (chat != null && tdlib.canCopyPostLink(item.getMessage()))) {
-      ids.append(R.id.btn_copyLink);
-      strings.append(R.string.CopyLink);
-    }
-
-    if (item.getSourceChatId() != 0 && item.getSourceMessageId() != 0 && mode == MODE_MESSAGES) {
-      ids.append(R.id.btn_showInChat);
-      strings.append(R.string.ShowInChat);
-    }
-
-    if (item.canBeReported() && (item.getMessage() != null || stack.getCurrentIndex() == 0)) {
-      ids.append(R.id.btn_messageReport);
-      strings.append(R.string.Report);
-    }
-
-    boolean isSelfProfile = mode == MODE_PROFILE && tdlib.isSelfSender(item.getSourceSender());
-    boolean canDelete = isSelfProfile;
-    if (!canDelete && mode == MODE_CHAT_PROFILE) {
-      canDelete = chat != null && tdlib.canChangeInfo(chat);
-    }
-    if (isSelfProfile && stack.getCurrentIndex() != 0) {
-      ids.append(R.id.btn_setProfilePhoto);
-      strings.append(R.string.SetAsCurrent);
-    }
-    if (canDelete) {
-      ids.append(R.id.btn_deleteProfilePhoto);
-      strings.append(R.string.Delete);
-    }
-
-    if (!ids.isEmpty()) {
-      showMore(ids.get(), strings.get(), 0, canRunFullscreen());
-    }
-  }
-
   @Override
   public void onMenuItemPressed (int id, View view) {
     if (id == R.id.menu_btn_pictureInPicture) {
@@ -1712,7 +1621,69 @@ public class MediaViewController extends ViewController<MediaViewController.Args
     } else if (id == R.id.menu_btn_edit) {
       openForceEditMode();
     } else if (id == R.id.menu_btn_more) {
-      openMoreMenu();
+      IntList ids = new IntList(4);
+      StringList strings = new StringList(4);
+
+      MediaItem item = stack.getCurrent();
+
+      TdApi.Chat chat = tdlib.chat(item.getSourceChatId());
+
+      if (tdlib.canEditMedia(item.getMessage(), true)) {
+        ids.append(R.id.btn_replace);
+        strings.append(item.isVideo() ? R.string.ReplaceVideo : R.string.ReplaceImage);
+      }
+
+      if (item.isLoaded() && item.canBeSaved()) {
+        if ((item.isVideo() && !item.isGifType()) || (getArgumentsStrict().forceOpenIn)) {
+          ids.append(R.id.btn_open);
+          strings.append(R.string.OpenInExternalApp);
+        }
+        ids.append(R.id.btn_saveToGallery);
+        strings.append(R.string.SaveToGallery);
+      }
+
+      if (mode != MODE_SECRET && mode != MODE_GALLERY && item.canBeSaved() && item.canBeShared()) {
+        ids.append(R.id.btn_share);
+        strings.append(R.string.Share);
+      }
+
+      if (item.isGifType() && item.canBeSaved()) {
+        ids.append(R.id.btn_saveGif);
+        strings.append(R.string.SaveGif);
+      }
+
+      if (!StringUtils.isEmpty(getArgumentsStrict().copyLink) || (chat != null && tdlib.canCopyPostLink(item.getMessage()))) {
+        ids.append(R.id.btn_copyLink);
+        strings.append(R.string.CopyLink);
+      }
+
+      if (item.getSourceChatId() != 0 && item.getSourceMessageId() != 0 && mode == MODE_MESSAGES) {
+        ids.append(R.id.btn_showInChat);
+        strings.append(R.string.ShowInChat);
+      }
+
+      if (item.canBeReported() && (item.getMessage() != null || stack.getCurrentIndex() == 0)) {
+        ids.append(R.id.btn_messageReport);
+        strings.append(R.string.Report);
+      }
+
+      boolean isSelfProfile = mode == MODE_PROFILE && tdlib.isSelfSender(item.getSourceSender());
+      boolean canDelete = isSelfProfile;
+      if (!canDelete && mode == MODE_CHAT_PROFILE) {
+        canDelete = chat != null && tdlib.canChangeInfo(chat);
+      }
+      if (isSelfProfile && stack.getCurrentIndex() != 0) {
+        ids.append(R.id.btn_setProfilePhoto);
+        strings.append(R.string.SetAsCurrent);
+      }
+      if (canDelete) {
+        ids.append(R.id.btn_deleteProfilePhoto);
+        strings.append(R.string.Delete);
+      }
+
+      if (!ids.isEmpty()) {
+        showMore(ids.get(), strings.get(), 0, canRunFullscreen());
+      }
     } else if (id == R.id.menu_btn_masks) {
     }
   }
@@ -1746,7 +1717,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
     } else if (id == R.id.btn_messageReport) {
       TdApi.Message message = item.getMessage();
       if (message != null) {
-        TdlibUi.reportChat(this, item.getSourceChatId(), new TdApi.Message[] {message}, getForcedTheme(), null, true);
+        TdlibUi.reportChat(this, item.getSourceChatId(), new TdApi.Message[] {message}, null, getForcedTheme());
       } else {
         final long chatId = Td.getSenderId(item.getSourceSender());
         final RunnableData<TdApi.PhotoSize> act = (photoSize) -> {
@@ -1811,7 +1782,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
         if (!file.imageGalleryFile.hasCaption()) {
           file.imageGalleryFile.setCaption(item.getCaption());
         }
-        TdApi.InputMessageContent content = TD.toContent(tdlib, file.imageGalleryFile, false, false, item.showCaptionAboveMedia(), item.hasSpoiler(), ChatId.isSecret(item.getSourceChatId()));
+        TdApi.InputMessageContent content = TD.toContent(tdlib, file.imageGalleryFile, false, false, item.hasSpoiler(), ChatId.isSecret(item.getSourceChatId()));
         UI.post(() -> {
           tdlib.editMessageMedia(item.getSourceChatId(), item.getSourceMessageId(), content, new MediaToReplacePickerManager.LocalPickedFile(file.imageGalleryFile, null));
           forceClose();
@@ -1827,8 +1798,8 @@ public class MediaViewController extends ViewController<MediaViewController.Args
       if (item.getMessage() != null) {
         c = new ShareController(context, tdlib);
         if (Td.isText(item.getMessage().content)) {
-          TdApi.LinkPreview linkPreview = ((TdApi.MessageText) item.getMessage().content).linkPreview;
-          c.setArguments(new ShareController.Args(item, linkPreview.displayUrl, linkPreview.displayUrl));
+          TdApi.WebPage webPage = ((TdApi.MessageText) item.getMessage().content).webPage;
+          c.setArguments(new ShareController.Args(item, webPage.displayUrl, webPage.displayUrl));
         } else {
           c.setArguments(new ShareController.Args(item.getMessage()));
         }
@@ -2109,12 +2080,11 @@ public class MediaViewController extends ViewController<MediaViewController.Args
         TdApi.Message message = item.getMessage();
         if (message != null && Td.isText(message.content)) {
           TdApi.MessageText messageText = (TdApi.MessageText) message.content;
-          if (messageText.linkPreview != null) {
-            String author = messageText.linkPreview.author;
-            if (!StringUtils.isEmpty(author)) {
-              return author;
+          if (messageText.webPage != null) {
+            if (!StringUtils.isEmpty(messageText.webPage.author)) {
+              return messageText.webPage.author;
             }
-            return messageText.linkPreview.displayUrl;
+            return messageText.webPage.displayUrl;
           }
         }
         String authorText = getAuthorText(item);
@@ -3478,7 +3448,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
 
   private void checkBottomWrapY () {
     int thumbsDistance = (Screen.dp(THUMBS_PADDING) * 2 + Screen.dp(THUMBS_HEIGHT)) * (inForceEditMode() ? 0 : 1);
-    float offsetDistance = (float) measureBottomWrapHeight() * dismissFactor - getKeyboardOffset();
+    float offsetDistance = (float) measureBottomWrapHeight() * dismissFactor;
     // int appliedBottomPadding = -this.appliedBottomPadding;
     if (bottomWrap != null) {
       bottomWrap.setTranslationY(offsetDistance - (thumbsFactor * (float) thumbsDistance) * (1f - dismissFactor) - appliedBottomPadding);
@@ -5187,7 +5157,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
           }
         };
         captionView.setPadding(Screen.dp(14f), Screen.dp(14f), Screen.dp(14f), Screen.dp(14f));
-        captionView.setTextColorId(ColorId.white, true);
+        captionView.setTextColorId(ColorId.white);
         captionView.setTextSize(Screen.dp(16f));
         captionView.setTextStyleProvider(TGMessage.getTextStyleProvider());
         captionView.setLinkColorId(ColorId.caption_textLink, ColorId.caption_textLinkPressHighlight);
@@ -8111,7 +8081,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
       imageFiles.add(stack.getCurrent().getSourceGalleryFile());
     }
 
-    if (sendDelegate.sendSelectedItems(view, imageFiles, initialSendOptions, disableMarkdown, asFiles, sendDelegate.showCaptionAboveMedia(), sendDelegate.isHideMediaEnabled())) {
+    if (sendDelegate.sendSelectedItems(view, imageFiles, initialSendOptions, disableMarkdown, asFiles, sendDelegate.isHideMediaEnabled())) {
       forceAnimationType = ANIMATION_TYPE_FADE;
       isMediaSent = true;
       setUIBlocked(true);
@@ -8263,11 +8233,11 @@ public class MediaViewController extends ViewController<MediaViewController.Args
       return;
     }
 
-    TGWebPage parsedWebPage = msg.getParsedLinkPreview();
+    TGWebPage parsedWebPage = msg.getParsedWebPage();
     if (parsedWebPage == null) {
       return;
     }
-    TdApi.LinkPreview linkPreview = parsedWebPage.getLinkPreview();
+    TdApi.WebPage webPage = parsedWebPage.getWebPage();
     MediaStack stack;
 
     stack = new MediaStack(context.context(), context.tdlib());
@@ -8285,7 +8255,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
 
     Args args = new Args(context, MODE_MESSAGES, stack);
     args.noLoadMore = true;
-    args.copyLink = linkPreview.url;
+    args.copyLink = webPage.url;
     args.forceThumbs = true;
     args.areOnlyScheduled = msg.isScheduled();
     if (context instanceof MediaCollectorDelegate) {
@@ -8445,7 +8415,14 @@ public class MediaViewController extends ViewController<MediaViewController.Args
   }
 
   private void setTextFormattingLayoutVisible (boolean visible) {
-    textFormattingVisible = keyboardFrameLayout != null && keyboardFrameLayout.contentView.setTextFormattingLayoutVisible(visible);
+    textFormattingVisible = visible;
+    if (emojiLayout != null && textFormattingLayout != null) {
+      textFormattingLayout.setVisibility(visible ? View.VISIBLE : View.GONE);
+      emojiLayout.optimizeForDisplayTextFormattingLayout(visible);
+      if (visible) {
+        textFormattingLayout.checkButtonsActive(false);
+      }
+    }
   }
 
   private void closeTextFormattingKeyboard () {
@@ -8558,9 +8535,9 @@ public class MediaViewController extends ViewController<MediaViewController.Args
       },
       new MediaSpoilerSendDelegate() {
         @Override
-        public boolean sendSelectedItems (View view, ArrayList<ImageFile> images, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean showCaptionAboveMedia, boolean hasSpoiler) {
+        public boolean sendSelectedItems (View view, ArrayList<ImageFile> images, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean hasSpoiler) {
           ImageGalleryFile galleryFile = (ImageGalleryFile) images.get(0);
-          return onSendMedia(galleryFile, options, disableMarkdown, asFiles, showCaptionAboveMedia, hasSpoiler);
+          return onSendMedia(galleryFile, options, disableMarkdown, asFiles, hasSpoiler);
         }
 
         @Override
@@ -8569,7 +8546,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
           mediaStack.getCurrent().setHasSpoiler(hideMedia);
         }
 
-        private boolean onSendMedia (ImageGalleryFile file, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean showCaptionAboveMedia, boolean hasSpoiler) {
+        private boolean onSendMedia (ImageGalleryFile file, TdApi.MessageSendOptions options, boolean disableMarkdown, boolean asFiles, boolean hasSpoiler) {
           MessagesController m = findOutputController();
           if (m != null) {
             final MediaItem oldItem = forceEditModeOld_arguments != null && forceEditModeOld_arguments.stack != null ?
@@ -8602,7 +8579,7 @@ public class MediaViewController extends ViewController<MediaViewController.Args
               }
               return false;
             }
-            return m.sendPhotosAndVideosCompressed(new ImageGalleryFile[] {file}, false, options, disableMarkdown, asFiles, showCaptionAboveMedia, hasSpoiler);
+            return m.sendPhotosAndVideosCompressed(new ImageGalleryFile[] {file}, false, options, disableMarkdown, asFiles, hasSpoiler);
           }
           return false;
         }

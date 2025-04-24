@@ -17,7 +17,6 @@ package org.thunderdog.challegram.ui;
 import android.content.Context;
 import android.view.View;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
@@ -42,8 +41,8 @@ import java.util.List;
 
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.collection.IntList;
-import tgx.td.ChatId;
-import tgx.td.Td;
+import me.vkryl.td.ChatId;
+import me.vkryl.td.Td;
 
 public class SharedMembersController extends SharedBaseController<DoubleTextWrapper> implements
   TdlibCache.BasicGroupDataChangeListener,
@@ -53,6 +52,11 @@ public class SharedMembersController extends SharedBaseController<DoubleTextWrap
   public SharedMembersController (Context context, Tdlib tdlib) {
     super(context, tdlib);
   }
+
+  /*@Override
+  public int getIcon () {
+    return R.drawable.baseline_group_20;
+  }*/
 
   private boolean forceAdmins;
 
@@ -73,22 +77,6 @@ public class SharedMembersController extends SharedBaseController<DoubleTextWrap
       }
     }
     return Lang.getString(forceAdmins ? R.string.TabAdmins : R.string.TabMembers);
-  }
-
-  @DrawableRes
-  @Override
-  public int getIcon () {
-    if (specificFilter != null) {
-      switch (specificFilter.getConstructor()) {
-        case TdApi.SupergroupMembersFilterAdministrators.CONSTRUCTOR:
-          return R.drawable.baseline_stars_24;
-        case TdApi.SupergroupMembersFilterBanned.CONSTRUCTOR:
-          return R.drawable.baseline_gavel_24;
-        case TdApi.SupergroupMembersFilterRestricted.CONSTRUCTOR:
-          return R.drawable.baseline_block_24;
-      }
-    }
-    return forceAdmins ? R.drawable.baseline_stars_24 : R.drawable.baseline_group_24;
   }
 
   @Override
@@ -206,7 +194,7 @@ public class SharedMembersController extends SharedBaseController<DoubleTextWrap
         return DoubleTextWrapper.valueOf(tdlib, (TdApi.ChatMember) object, needFullMemberDescription(), needAdminSign());
       }
       case TdApi.User.CONSTRUCTOR: {
-        return new DoubleTextWrapper(tdlib, ((TdApi.User) object).id, true, DoubleTextWrapper.SubtitleOption.SHOW_ACCESS_TO_MESSAGE_PRIVACY);
+        return new DoubleTextWrapper(tdlib, ((TdApi.User) object).id, true);
       }
     }
     return null;

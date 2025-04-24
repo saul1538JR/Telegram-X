@@ -33,7 +33,7 @@ import org.thunderdog.challegram.util.text.TextMedia;
 
 import me.vkryl.core.lambda.Destroyable;
 
-public class CustomEmojiSpanImpl extends EmojiSpanImpl implements TdlibEmojiManager.Watcher, PreserveCustomEmojiFilter.RecoverableSpan, Destroyable {
+class CustomEmojiSpanImpl extends EmojiSpanImpl implements TdlibEmojiManager.Watcher, Destroyable {
   private final CustomEmojiSurfaceProvider surfaceProvider;
   private final Tdlib tdlib;
   private final long customEmojiId;
@@ -83,8 +83,8 @@ public class CustomEmojiSpanImpl extends EmojiSpanImpl implements TdlibEmojiMana
     if (this.customEmoji == customEmoji)
       return;
     this.customEmoji = customEmoji;
-    if (size.isInitialized()) {
-      prepareCustomEmoji(size.getSize());
+    if (mSize != -1) {
+      prepareCustomEmoji(mSize);
       surfaceProvider.onInvalidateSpan(this, customEmoji != null && customEmoji.isNotFound());
     }
   }
@@ -107,7 +107,7 @@ public class CustomEmojiSpanImpl extends EmojiSpanImpl implements TdlibEmojiMana
     drawRect.set(left, top, right, bottom);
     prepareCustomEmoji(emojiSize);
     if (customEmoji != null && customEmoji.isNotFound()) {
-      super.drawEmoji(c, drawRect.centerX(), drawRect.centerY(), size.getSize());
+      super.drawEmoji(c, drawRect.centerX(), drawRect.centerY(), mSize);
     }
   }
 
@@ -148,8 +148,8 @@ public class CustomEmojiSpanImpl extends EmojiSpanImpl implements TdlibEmojiMana
     if (drawRect.left == drawRect.right || drawRect.top == drawRect.bottom) {
       return; // force invalidate()?
     }
-    if (customEmojiSize != size.getSize() && size.getSize() > 0) {
-      prepareCustomEmoji(size.getSize());
+    if (customEmojiSize != mSize && mSize > 0) {
+      prepareCustomEmoji(mSize);
     }
     int paddingLeft = view.getPaddingLeft();
     int paddingTop = view.getPaddingTop();

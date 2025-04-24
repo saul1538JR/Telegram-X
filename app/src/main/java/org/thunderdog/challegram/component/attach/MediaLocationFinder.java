@@ -32,7 +32,7 @@ import org.thunderdog.challegram.util.CancellableResultHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import tgx.td.ChatId;
+import me.vkryl.td.ChatId;
 
 public class MediaLocationFinder {
   private static MediaLocationFinder instance;
